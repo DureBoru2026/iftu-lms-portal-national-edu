@@ -1,0 +1,325 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the IFTU platform (Student, Teacher, Admin).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "teacher", "admin", "teaching_assistant", "content_creator"] },
+        "points": { "type": "number" },
+        "completedLessons": { "type": "array", "items": { "type": "string" } },
+        "completedCourses": { "type": "array", "items": { "type": "string" } },
+        "grade": { "type": "string" },
+        "stream": { "type": "string" },
+        "school": { "type": "string" },
+        "photo": { "type": "string" },
+        "status": { "type": "string" },
+        "badges": { "type": "array", "items": { "type": "object" } },
+        "academicRecords": { "type": "array", "items": { "type": "object" } },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "canManageUsers": { "type": "boolean" },
+            "canManageCourses": { "type": "boolean" },
+            "canManageExams": { "type": "boolean" },
+            "canManageContent": { "type": "boolean" },
+            "canViewReports": { "type": "boolean" },
+            "canConfigureSystem": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "An educational course containing multiple lessons.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "lessons": { "type": "array", "items": { "$ref": "Lesson" } },
+        "grade": { "type": "string" },
+        "stream": { "type": "string" }
+      }
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "A single lesson within a course.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "videoUrl": { "type": "string" }
+      }
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "A test or mock exam.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "duration": { "type": "number" },
+        "questions": { "type": "array" },
+        "totalPoints": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "published", "closed"] },
+        "type": { "type": "string" },
+        "academicYear": { "type": "number" },
+        "semester": { "type": "number", "enum": [1, 2] },
+        "subject": { "type": "string" },
+        "difficulty": { "type": "string", "enum": ["Easy", "Medium", "Hard"] }
+      },
+      "required": ["id", "title", "duration", "questions", "totalPoints", "status", "type", "academicYear", "semester", "subject", "difficulty"]
+    },
+    "ExamResult": {
+      "title": "ExamResult",
+      "description": "The result of a student taking an exam.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "examId": { "type": "string" },
+        "score": { "type": "number" },
+        "percentage": { "type": "number" },
+        "completedAt": { "type": "string" }
+      }
+    },
+    "News": {
+      "title": "News",
+      "description": "Educational news updates.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" }
+      }
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "A notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "A task assigned to students.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string" }
+      }
+    },
+    "AssignmentSubmission": {
+      "title": "AssignmentSubmission",
+      "description": "A student's submission for an assignment, including grading information.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "assignmentId": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["submitted", "graded", "returned", "resubmission_required"] },
+        "submittedAt": { "type": "string" },
+        "grade": { "type": "number", "description": "The score assigned to the submission." },
+        "feedback": { "type": "string", "description": "Teacher's feedback on the submission." },
+        "gradedFileUrl": { "type": "string", "description": "URL to the graded document (e.g., with annotations)." },
+        "gradedBy": { "type": "string" },
+        "gradedAt": { "type": "string" }
+      }
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User feedback about the platform.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" }
+      }
+    },
+    "VideoLabItem": {
+      "title": "VideoLabItem",
+      "description": "Educational video content generated or uploaded to the Video Lab.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "url": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "subject": { "type": "string" },
+        "grade": { "type": "string" },
+        "stream": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "views": { "type": "number" }
+      },
+      "required": ["id", "title", "url", "createdBy", "createdAt"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "A reusable question for exams and lessons.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string", "enum": ["multiple-choice", "true-false", "fill-in-the-blank", "short-answer"] },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctAnswer": { "type": ["number", "string"] },
+        "points": { "type": "number" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "grade": { "type": "string" },
+        "stream": { "type": "string" },
+        "subject": { "type": "string" },
+        "concept": { "type": "string" }
+      },
+      "required": ["id", "text", "type", "correctAnswer", "points"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A message sent in a study hall chat.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["id", "userId", "userName", "text", "timestamp"]
+    },
+    "Discussion": {
+      "title": "Discussion",
+      "description": "Community forum posts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "StudyPlan": {
+      "title": "StudyPlan",
+      "description": "AI-generated personalized learning path.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "goals": { "type": "array", "items": { "type": "string" } },
+        "generatedAt": { "type": "string" }
+      }
+    },
+    "SystemSettings": {
+      "title": "SystemSettings",
+      "description": "Global system configuration settings.",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean" },
+        "siteNotice": { "type": "string" },
+        "allowPublicRegistration": { "type": "boolean" },
+        "activeNationalExams": { "type": "array", "items": { "type": "string" } },
+        "systemVersion": { "type": "string" },
+        "lastBackupDate": { "type": "string" },
+        "broadcastMessage": { "type": "string" }
+      },
+      "required": ["maintenanceMode", "allowPublicRegistration", "systemVersion"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data."
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Course content and lessons."
+    },
+    "/discussions/{discussionId}": {
+      "schema": "Discussion",
+      "description": "Forum posts."
+    },
+    "/study_plans/{planId}": {
+      "schema": "StudyPlan",
+      "description": "AI Study Plans."
+    },
+    "/exams/{examId}": {
+      "schema": "Exam",
+      "description": "National and mock exams."
+    },
+    "/question_bank/{questionId}": {
+      "schema": "Question",
+      "description": "Reusable question bank for teachers."
+    },
+    "/news/{newsId}": {
+      "schema": "News",
+      "description": "National educational news bulletins."
+    },
+    "/notifications/{notifId}": {
+      "schema": "AppNotification",
+      "description": "User-specific notifications."
+    },
+    "/assignments/{assignmentId}": {
+      "schema": "Assignment",
+      "description": "Course assignments."
+    },
+    "/submissions/{submissionId}": {
+      "schema": "AssignmentSubmission",
+      "description": "Student assignment submissions."
+    },
+    "/exam_results/{resultId}": {
+      "schema": "ExamResult",
+      "description": "Results of exams taken by students."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "User feedback."
+    },
+    "/videos/{videoId}": {
+       "schema": "VideoLabItem",
+       "description": "Educational videos in the National Video Lab."
+    },
+    "/system/settings": {
+       "schema": "SystemSettings",
+       "description": "Global system configuration."
+    },
+    "/system/subject_registry": {
+       "schema": "object",
+       "description": "National subject registry mapping."
+    },
+    "/system/{docId}": {
+       "schema": "object",
+       "description": "Other system documents."
+    },
+    "/study_halls/{hallId}/messages/{msgId}": {
+      "schema": "ChatMessage",
+      "description": "Real-time chat messages in study halls."
+    },
+    "/study_halls/{hallId}/notes/{noteId}": {
+      "schema": "object",
+      "description": "Shared notes in study halls."
+    }
+  }
+}

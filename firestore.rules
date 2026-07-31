@@ -1,0 +1,318 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Global Safety Net & Catch-all
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if isSignedIn() && (
+        request.auth.uid == "YUyWZcr6BaT7aLsDSuaRgfdF6xd2" || 
+        request.auth.token.get('email', '').lower() == "jemalfano030@gmail.com" ||
+        request.auth.token.get('email', '').lower() == "jemalfan030@gmail.com" ||
+        request.auth.token.get('email', '').lower() == "admin@iftu.edu.et" ||
+        request.auth.token.get('email', '').lower() == "admin@iftu-lms.com"
+      );
+    }
+
+    // ===============================================================
+    // Primitive Helpers
+    // ===============================================================
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.get('email_verified', true) == true; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    
+    // Path variable hardening
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    // Role Helpers
+    function isHardcodedAdmin() {
+      return isSignedIn() && (
+        request.auth.uid == "YUyWZcr6BaT7aLsDSuaRgfdF6xd2" ||
+        (request.auth.token.get('email', '').lower() == "jemalfano030@gmail.com") ||
+        (request.auth.token.get('email', '').lower() == "jemalfan030@gmail.com") ||
+        (request.auth.token.get('email', '').lower() == "admin@iftu.edu.et") ||
+        (request.auth.token.get('email', '').lower() == "admin@iftu-lms.com")
+      );
+    }
+    
+    function isAdmin() {
+      return isHardcodedAdmin() || (isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'student') == 'admin');
+    }
+
+    function isTeacher() {
+      return isHardcodedAdmin() || isAdmin() || (isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'student') in ['teacher', 'teaching_assistant', 'content_creator']);
+    }
+
+    // ===============================================================
+    // Validation Blueprints (Eight Pillars)
+    // ===============================================================
+    
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'email', 'name', 'role']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.role in ['student', 'teacher', 'admin', 'registrar', 'teaching_assistant', 'content_creator'] &&
+             (!('sovereignIndex' in data) || data.sovereignIndex is string) &&
+             (!('gender' in data) || data.gender is string);
+    }
+
+    function isValidCourse(data) {
+      return data.keys().hasAll(['id', 'title', 'code']) &&
+             data.id is string && data.title is string && data.code is string;
+    }
+
+    function isValidExam(data) {
+      return data.keys().hasAll(['id', 'title', 'courseId']) &&
+             data.id is string && data.title is string && data.courseId is string;
+    }
+
+    function isValidSystemSettings(data) {
+      return data.keys().hasAll(['maintenanceMode', 'allowPublicRegistration', 'systemVersion']) &&
+             data.maintenanceMode is bool &&
+             data.allowPublicRegistration is bool &&
+             data.systemVersion is string;
+    }
+
+    function isValidExamResult(data) {
+      return data.keys().hasAll(['studentId', 'examId', 'score', 'totalPoints']) &&
+             data.studentId == request.auth.uid &&
+             data.score is number && data.totalPoints is number &&
+             data.score >= 0 && data.score <= data.totalPoints;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'isRead', 'createdAt']) &&
+             data.userId is string && data.title is string && data.message is string &&
+             data.type in ['assignment', 'submission', 'grade', 'system', 'info'] &&
+             data.isRead is bool &&
+             data.createdAt is string;
+    }
+
+    function isValidAssignment(data) {
+      return data.keys().hasAll(['id', 'title', 'courseCode', 'dueDate']) &&
+             data.id is string && data.title is string && data.title.size() <= 200 &&
+             data.courseCode is string &&
+             data.dueDate is string;
+    }
+
+    function isValidSubmission(data) {
+      return data.keys().hasAll(['id', 'studentId', 'studentName', 'assignmentId', 'fileUrl', 'status']) &&
+             data.id is string &&
+             data.studentId is string &&
+             data.studentName is string &&
+             data.assignmentId is string &&
+             data.fileUrl is string &&
+             data.status in ['submitted', 'graded', 'returned', 'resubmission_required'] &&
+             (!('submittedAt' in data) || data.submittedAt is string) &&
+             (!('grade' in data) || data.grade is number) &&
+             (!('feedback' in data) || data.feedback is string) &&
+             (!('gradedFileUrl' in data) || data.gradedFileUrl is string) &&
+             (!('gradedBy' in data) || data.gradedBy is string) &&
+             (!('gradedAt' in data) || data.gradedAt is string);
+    }
+
+    function isValidVideo(data) {
+      return data.keys().hasAll(['id', 'title', 'url', 'createdBy', 'createdAt']) &&
+             data.id is string && data.title is string && data.url is string &&
+             data.createdBy is string && data.createdAt is string &&
+             (!('description' in data) || data.description is string) &&
+             (!('thumbnailUrl' in data) || data.thumbnailUrl is string) &&
+             (!('subject' in data) || data.subject is string) &&
+             (!('grade' in data) || data.grade is string) &&
+             (!('stream' in data) || data.stream is string) &&
+             (!('tags' in data) || data.tags is list) &&
+             (!('views' in data) || data.views is number);
+    }
+
+    function isValidQuestion(data) {
+      return data.keys().hasAll(['id', 'text', 'type', 'correctAnswer', 'points']) &&
+             data.id is string && data.text is string && 
+             data.type in ['multiple-choice', 'true-false', 'fill-in-the-blank', 'short-answer'] &&
+             data.points is number &&
+             (!('category' in data) || data.category is string) &&
+             (!('subject' in data) || data.subject is string) &&
+             (!('grade' in data) || data.grade is string) &&
+             (!('stream' in data) || data.stream is string) &&
+             (!('tags' in data) || data.tags is list);
+    }
+
+    function isValidEnrollment(data) {
+      return data.keys().hasAll(['id', 'userId', 'courseId', 'enrolledAt', 'status']) &&
+             data.id is string && data.userId is string && data.courseId is string &&
+             data.enrolledAt is string && data.status is string;
+    }
+
+    function isValidDiscussion(data) {
+      return data.keys().hasAll(['id', 'title', 'content', 'authorId', 'createdAt']) &&
+             data.id is string && data.title is string && data.content is string &&
+             data.authorId is string && data.createdAt is string;
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /discussions/{discussionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidDiscussion(incoming());
+      allow update: if isSignedIn() && (existing().authorId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /study_plans/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /enrollments/{enrollmentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidEnrollment(incoming()) && (incoming().userId == request.auth.uid || isAdmin());
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /system_health/{docId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /question_bank/{questionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (isAdmin() || isTeacher()) && isValidQuestion(incoming());
+      allow update: if isSignedIn() && (isAdmin() || isTeacher()) && isValidQuestion(incoming());
+      allow delete: if isSignedIn() && (isAdmin() || isTeacher());
+    }
+
+    match /videos/{videoId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (isAdmin() || isTeacher()) && isValidVideo(incoming());
+      allow update: if isSignedIn() && (isAdmin() || isTeacher()) && isValidVideo(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      // Allow users to create their own profile, or admins to manage users
+      allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(incoming());
+      // Allow users to update their own profile (immutable roles for self) or admins full control
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && incoming().role == existing().role) || 
+        isAdmin()
+      ) && isValidUser(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /courses/{courseId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (isAdmin() || isTeacher()) && isValidCourse(incoming());
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        isTeacher() || 
+        (incoming().diff(existing()).affectedKeys().hasOnly(['enrolledCount']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /exams/{examId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isTeacher()) && isValidExam(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /news/{newsId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isAdmin();
+    }
+
+    match /exam_results/{resultId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (isValidExamResult(incoming()) || isAdmin());
+      allow update: if isSignedIn() && (isAdmin() || isTeacher());
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && (notifId == 'null' || resource.data.userId == request.auth.uid || isAdmin() || isTeacher());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        (resource.data.userId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['isRead'])) || 
+        isAdmin() || isTeacher()
+      );
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isTeacher()) && isValidAssignment(incoming());
+    }
+
+    match /submissions/{submissionId} {
+      allow get: if isSignedIn() && (existing().studentId == request.auth.uid || isAdmin() || isTeacher());
+      allow list: if isSignedIn() && (resource.data.studentId == request.auth.uid || isHardcodedAdmin() || isAdmin() || isTeacher());
+      
+      allow create: if isSignedIn() && isValidSubmission(incoming()) && (
+        incoming().studentId == request.auth.uid || isAdmin() || isTeacher()
+      );
+      
+      allow update: if isSignedIn() && isValidSubmission(incoming()) && (
+        (isOwner(existing().studentId) && existing().status == 'submitted' && incoming().studentId == existing().studentId) || 
+        isAdmin() || 
+        isTeacher()
+      );
+      
+      allow delete: if (isOwner(existing().studentId) || isAdmin() || isTeacher());
+    }
+
+    match /feedback/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+    }
+
+    match /study_halls/{hallId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+      
+      match /messages/{msgId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && (existing().get('userId', '') == request.auth.uid || existing().get('senderId', '') == request.auth.uid || isAdmin());
+      }
+
+      match /presence/{userId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && userId == request.auth.uid;
+      }
+      
+      match /notes/{noteId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn();
+      }
+    }
+
+    match /system/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isAdmin() && (
+        (docId == 'settings' && isValidSystemSettings(incoming())) ||
+        (docId != 'settings')
+      );
+    }
+
+    // Special case for initial setup if needed, otherwise protected
+    match /_internal_/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
+
