@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, Sparkles, CheckCircle, Circle, PlayCircle, FileText, HelpCircle, Send, Trophy, Brain } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw, Sparkles, CheckCircle, Circle, PlayCircle, FileText, HelpCircle, Send, Trophy, Brain, Download } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Course, Lesson, Question, Language, User, AssignmentSubmission } from '../types';
 import { getLessonDeepDive, generateLessonCheckpoints } from '../services/geminiService';

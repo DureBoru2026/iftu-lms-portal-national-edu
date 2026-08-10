@@ -215,7 +215,7 @@ const Header: React.FC<HeaderProps> = ({
               {isDropdownOpen && (
                 <div className="absolute right-0 top-16 md:top-24 w-[300px] bg-white border-8 border-black rounded-[3rem] shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] overflow-hidden animate-scaleIn z-[1000] max-h-[80vh] overflow-y-auto">
                   <div className="p-6 bg-gray-50 text-black flex justify-between items-center border-b-8 border-black">
-                    <span className="text-[10px] font-black uppercase tracking-widest">Sovereign Menu</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Portal Menu</span>
                     <span className="text-xl">🎓</span>
                   </div>
                   <div className="flex flex-col p-4 gap-2">

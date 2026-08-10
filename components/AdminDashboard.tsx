@@ -363,8 +363,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     {
       title: "Core Command",
       items: [
-        { id: 'command_center', label: 'Command Center', icon: ShieldCheck },
-        { id: 'analytics', label: 'Sovereign Intel', icon: LayoutDashboard },
+        { id: 'command_center', label: 'Registry Admin', icon: ShieldCheck },
+        { id: 'analytics', label: 'System Analytics', icon: LayoutDashboard },
         { id: 'project_report', label: 'Project Report', icon: FileText },
         { id: 'sovereign_guide', label: 'System Manual', icon: FilePlus },
       ]
@@ -2179,14 +2179,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="relative z-10 space-y-4 max-w-2xl">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="px-4 py-1.5 bg-amber-400 text-black font-black text-xs uppercase tracking-widest rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-                      👑 Supreme Administrator
+                      👑 National System Admin
                     </span>
                     <span className="px-3 py-1 bg-green-500 text-white font-black text-[10px] uppercase tracking-widest rounded-full border border-white">
                       VERIFIED ACCESS
                     </span>
                   </div>
                   <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">
-                    Command Center.
+                    National Registry Admin.
                   </h2>
                   <p className="text-blue-300 font-black uppercase tracking-wider text-xs md:text-sm">
                     {currentUser?.name || 'Jemal Fano Haji'} — Admin Administrator of IFTU LMS ({currentUser?.email || 'jemalfano030@gmail.com'})
@@ -2194,6 +2194,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <p className="text-sm md:text-base font-medium text-gray-300 italic leading-relaxed">
                     National Digital Education Command Center. Full sovereign authority over user identities, academic curricula, exams, and system broadcasts.
                   </p>
+                  
+                  {/* Quick Action Control Hub */}
+                  <div className="flex flex-wrap gap-4 pt-6 mt-4 border-t-2 border-white/10">
+                    <button 
+                      onClick={() => setActiveTab('identities')}
+                      className="px-6 py-3 bg-white/10 hover:bg-white/20 border-2 border-white/20 rounded-2xl flex items-center gap-2 transition-all group"
+                    >
+                      <Users className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Manage Registry</span>
+                    </button>
+                    <button 
+                      onClick={() => setIsAddingExam(true)}
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 border-2 border-white/20 rounded-2xl flex items-center gap-2 transition-all group shadow-lg"
+                    >
+                      <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Deploy New Exam</span>
+                    </button>
+                    <button 
+                      onClick={() => setIsNewsModalOpen(true)}
+                      className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black border-2 border-black/10 rounded-2xl flex items-center gap-2 transition-all group"
+                    >
+                      <Bell className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Broadcast News</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Admin Profile Display Card */}
@@ -2290,7 +2315,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="bg-black text-white p-8 md:p-12 rounded-[3.5rem] md:rounded-[5rem] border-8 border-black shadow-[15px_15px_0px_0px_rgba(59,130,246,1)] md:shadow-[25px_25px_0px_0px_rgba(59,130,246,1)] flex flex-col md:flex-row justify-between items-center gap-8 md:gap-10">
             <div className="text-center md:text-left">
                <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white">
-                 {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || 'Sovereign Command'}.
+                 {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || 'National Dashboard'}.
                </h2>
                <p className="text-blue-400 font-black uppercase tracking-widest text-[10px] mt-4">Authorized Admin Hub: {currentUser?.name || 'Jemal Fano Haji'}</p>
             </div>

@@ -10,7 +10,7 @@ import {
   QrCode, Camera, CheckCircle2, XCircle, AlertTriangle, Download, Printer,
   RefreshCw, Copy, Check, Lock, Search, Eye, Maximize, CreditCard,
   ShoppingBag, Gift, Zap, TrendingUp, PieChart, Layers, Star, Unlock,
-  Sliders, Flame, Compass
+  Sliders, Flame, Compass, LayoutDashboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -716,6 +716,50 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
 
   return (
     <div className="space-y-12 animate-fadeIn pb-24">
+      {/* Dashboard Top Navigation / Breadcrumbs */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-black text-white p-8 rounded-[2.5rem] border-4 border-black shadow-[10px_10px_0px_0px_rgba(59,130,246,1)]">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center border-2 border-white shadow-lg">
+            <LayoutDashboard className="text-white w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Student Dashboard.</h2>
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Authorized Academic Access • {user.name}</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap justify-center gap-3">
+          <button 
+            onClick={() => onNavClick?.('courses')}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 border-2 border-white/20 rounded-xl flex items-center gap-2 transition-all group"
+          >
+            <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-black uppercase tracking-wider">My Modules</span>
+          </button>
+          <button 
+            onClick={() => onNavClick?.('exams')}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black border-2 border-black/10 rounded-xl flex items-center gap-2 transition-all group shadow-md"
+          >
+            <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-black uppercase tracking-wider">Take Exam</span>
+          </button>
+          <button 
+            onClick={() => onNavClick?.('assignments')}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 border-2 border-white/20 rounded-xl flex items-center gap-2 transition-all group"
+          >
+            <ClipboardList className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-black uppercase tracking-wider">Assignments</span>
+          </button>
+          <button 
+            onClick={() => onNavClick?.('studyhall')}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white border-2 border-white/20 rounded-xl flex items-center gap-2 transition-all group shadow-md"
+          >
+            <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span className="text-[9px] font-black uppercase tracking-wider">AI Study Hall</span>
+          </button>
+        </div>
+      </div>
+
       {/* Identity Header */}
       <div className="bg-white border-8 border-black rounded-[4rem] p-10 md:p-16 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col md:flex-row gap-12 items-center">
         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
@@ -738,15 +782,15 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
           >
             <Sliders size={16} /> Tone Studio
           </button>
-          <div className="absolute -bottom-4 right-4 w-16 h-16 bg-yellow-400 border-4 border-black rounded-2xl flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-bounce-slow" title="Sovereign Verified">
-            ⚡
+          <div className="absolute -bottom-4 right-4 w-16 h-16 bg-yellow-400 border-4 border-black rounded-2xl flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-bounce-slow" title="Verified Credential">
+            ✨
           </div>
         </div>
 
         <div className="flex-1 space-y-6 text-center md:text-left">
           <div className="space-y-2">
             <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-4">
-              <span className="px-4 py-1 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-full">Sovereign Identity</span>
+              <span className="px-4 py-1 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-full">National Identity</span>
               <span className="px-4 py-1 bg-blue-100 text-blue-600 border-2 border-black text-[10px] font-black uppercase tracking-widest rounded-full">Rank #{user.sovereignIndex || '??'}</span>
             </div>
             <h1 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">{user.name}</h1>
@@ -811,13 +855,13 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
       <div className="flex flex-wrap gap-4 overflow-x-auto pb-4 custom-scrollbar">
         {[
           { id: 'overview', icon: BarChart2, label: 'Performance Matrix' },
-          { id: 'progress_path', icon: Compass, label: 'Sovereign Progress Path' },
+          { id: 'progress_path', icon: Compass, label: 'Academic Roadmap' },
           { id: 'kp_shop', icon: ShoppingBag, label: 'KP Bazaar & Perks' },
           { id: 'identity', icon: QrCode, label: 'Identity Board & QR' },
           { id: 'academics', icon: BookOpen, label: 'Knowledge Trace' },
           { id: 'tasks', icon: ClipboardList, label: 'Academic Tasks' },
           { id: 'achievements', icon: Award, label: 'Vault of Medals' },
-          { id: 'records', icon: FileText, label: 'Sovereign Records' }
+          { id: 'records', icon: FileText, label: 'Academic Records' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -858,7 +902,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                     </span>
                   </div>
                   <h3 className="text-4xl md:text-5xl font-black uppercase italic mt-2">
-                    Sovereign Identity Board
+                    National Identity Board
                   </h3>
                   <p className="text-sm font-bold text-gray-500 uppercase italic">
                     Digital ID Card • QR Scanner Verification • Status Validation
@@ -886,7 +930,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                         </div>
                         <div>
                           <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest">MINISTRY OF EDUCATION</p>
-                          <h4 className="text-lg font-black uppercase italic leading-tight">NATIONAL DIGITAL SOVEREIGN ID</h4>
+                          <h4 className="text-lg font-black uppercase italic leading-tight">NATIONAL DIGITAL ID CARD</h4>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1308,11 +1352,11 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                         ADUU GANAMA ROADMAP
                       </span>
                       <span className="px-3 py-0.5 bg-white text-black border border-black rounded-md text-[9px] font-black uppercase tracking-wider">
-                        SOVEREIGN INDEX
+                        REGISTRY INDEX
                       </span>
                     </div>
                     <h4 className="text-2xl md:text-3xl font-black uppercase italic text-black mt-1">
-                      View Sovereign Progress Path
+                      View Academic Roadmap
                     </h4>
                     <p className="text-xs font-bold text-black/80 uppercase">
                       Track your level milestones, knowledge points, and regional academic roadmap
@@ -1331,7 +1375,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                 <div>
                   <div className="flex items-center gap-3">
                     <span className="px-4 py-1 bg-blue-600 text-white border-2 border-black rounded-full font-black text-xs uppercase tracking-widest">
-                      SOVEREIGN ANALYTICS
+                      ACADEMIC ANALYTICS
                     </span>
                     <span className="px-4 py-1 bg-green-100 text-green-700 border-2 border-black rounded-full font-black text-xs uppercase tracking-widest">
                       RECHARTS V2.8

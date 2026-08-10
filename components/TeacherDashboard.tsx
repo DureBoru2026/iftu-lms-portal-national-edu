@@ -4,7 +4,7 @@ import {
   GraduationCap, BookOpen, ClipboardList, 
   FileText, Video, Database, HelpCircle,
   Menu, X, ChevronRight, ShieldCheck,
-  LayoutDashboard, LogOut, ArrowRight,
+  LayoutDashboard, LogOut, ArrowRight, Book,
   TrendingUp, Settings, Plus, Search,
   Bell, Activity, Users, Sparkles, Rocket, ExternalLink
 } from 'lucide-react';
@@ -815,7 +815,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   const navSections = [
     {
-      title: "Core Intel",
+      title: "Core Operations",
       items: [
         { id: 'exams', label: 'Exam Engine', icon: GraduationCap },
         { id: 'courses', label: 'Curriculum', icon: BookOpen },
@@ -823,10 +823,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       ]
     },
     {
-      title: "Missions",
+      title: "Assignments",
       items: [
-        { id: 'assignments', label: 'Assignments', icon: ClipboardList },
-        { id: 'submissions', label: 'Submissions', icon: FileText },
+        { id: 'assignments', label: 'Task Manager', icon: ClipboardList },
+        { id: 'submissions', label: 'Student Submissions', icon: FileText },
       ]
     },
     {
@@ -1568,9 +1568,31 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <div className="bg-black text-white p-6 md:p-12 rounded-[3rem] md:rounded-[5rem] border-4 md:border-8 border-black shadow-[10px_10px_0px_0px_rgba(249,115,22,1)] md:shadow-[25px_25px_0px_0px_rgba(249,115,22,1)] flex flex-col md:flex-row justify-between items-center gap-6 md:gap-10">
             <div className="text-center md:text-left min-w-0">
                <h2 className="text-3xl sm:text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white break-words">
-                 {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || 'Faculty Command'}.
+                 {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || 'Faculty Dashboard'}.
                </h2>
                <p className="text-orange-400 font-black uppercase tracking-widest text-[10px] mt-4">Authorized Faculty Hub: {currentUser?.name}</p>
+               
+               {/* Faculty Action Hub */}
+               <div className="flex flex-wrap gap-3 mt-8">
+                  <button 
+                    onClick={() => { setActiveTab('exams'); setIsCreating(true); setWizardStep(1); }}
+                    className="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl border-2 border-white/20 font-black uppercase text-[9px] shadow-lg flex items-center gap-2"
+                  >
+                    <Plus size={14} /> New Exam
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('courses'); setIsCreatingCourse(true); }}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl border-2 border-white/20 font-black uppercase text-[9px] shadow-lg flex items-center gap-2"
+                  >
+                    <Book size={14} /> New Course
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('exams')}
+                    className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border-2 border-white/10 font-black uppercase text-[9px] flex items-center gap-2"
+                  >
+                    <TrendingUp size={14} /> Analytics
+                  </button>
+               </div>
             </div>
             <div className="flex gap-6 md:gap-12 shrink-0">
                <div className="text-center group">

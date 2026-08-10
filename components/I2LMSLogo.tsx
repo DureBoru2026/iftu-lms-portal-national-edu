@@ -55,7 +55,7 @@ export const I2LMSLogo: React.FC<I2LMSLogoProps> = ({
             </span>
           </div>
           <span className={`${dim.sub} font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-300 mt-1 flex items-center gap-1`}>
-            <span>Rising Sun Education</span> • <span>National Sovereign Hub</span>
+            <span>Rising Sun Education</span>
           </span>
         </div>
       )}
