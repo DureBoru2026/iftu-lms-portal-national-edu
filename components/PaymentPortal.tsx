@@ -10,16 +10,23 @@ interface PaymentPortalProps {
 
 const PaymentPortal: React.FC<PaymentPortalProps> = ({ itemTitle, price, onSuccess, onClose }) => {
   const [method, setMethod] = useState<'telebirr' | 'chapa' | null>(null);
-  const [step, setStep] = useState<'selection' | 'processing' | 'success'>('selection');
+  const [step, setStep] = useState<'selection' | 'verification' | 'processing' | 'success'>('selection');
+  const [verificationCode, setVerificationCode] = useState('');
 
   const handlePay = () => {
-    setStep('processing');
-    setTimeout(() => {
-      setStep('success');
-      setTimeout(() => {
-        onSuccess();
-      }, 1500);
-    }, 2000);
+    if (step === 'selection') {
+      setStep('verification');
+    } else if (step === 'verification') {
+      if (verificationCode.length === 6) {
+        setStep('processing');
+        setTimeout(() => {
+          setStep('success');
+          setTimeout(() => {
+            onSuccess();
+          }, 1500);
+        }, 2000);
+      }
+    }
   };
 
   return (
@@ -28,7 +35,7 @@ const PaymentPortal: React.FC<PaymentPortalProps> = ({ itemTitle, price, onSucce
         
         {step === 'selection' && (
           <div className="space-y-12">
-            <div className="space-y-4">
+            <div className="space-y-4 text-center">
               <h2 className="text-6xl font-black uppercase tracking-tighter italic leading-none">Checkout Portal</h2>
               <p className="text-xl font-black text-gray-500 uppercase">Item: {itemTitle}</p>
               <div className="text-5xl font-black text-green-600 italic">{price} ETB</div>
@@ -65,7 +72,37 @@ const PaymentPortal: React.FC<PaymentPortalProps> = ({ itemTitle, price, onSucce
                 onClick={handlePay}
                 className="flex-1 py-8 bg-black text-white border-8 border-black rounded-[2.5rem] font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(0,155,68,1)] disabled:opacity-30 disabled:shadow-none"
               >
-                Pay Now
+                Proceed
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 'verification' && (
+          <div className="space-y-12 animate-fadeIn">
+            <div className="text-center space-y-4">
+              <div className="text-6xl">🔒</div>
+              <h2 className="text-4xl font-black uppercase italic">Secure Verification</h2>
+              <p className="text-sm font-bold text-gray-500 uppercase">Enter the 6-digit transaction code sent via {method?.toUpperCase()}.</p>
+            </div>
+
+            <input 
+              type="text"
+              maxLength={6}
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+              placeholder="0 0 0 0 0 0"
+              className="w-full text-center text-6xl font-black tracking-[0.5em] p-10 border-8 border-black rounded-[2.5rem] outline-none focus:bg-gray-50 transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]"
+            />
+
+            <div className="flex gap-6 pt-8">
+              <button onClick={() => setStep('selection')} className="flex-1 py-6 bg-white border-8 border-black rounded-2xl font-black uppercase text-sm">Back</button>
+              <button 
+                disabled={verificationCode.length !== 6}
+                onClick={handlePay}
+                className="flex-1 py-6 bg-green-600 text-white border-8 border-black rounded-2xl font-black uppercase text-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] disabled:opacity-30"
+              >
+                Verify & Pay
               </button>
             </div>
           </div>

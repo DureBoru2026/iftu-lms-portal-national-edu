@@ -2802,7 +2802,6 @@ const App: React.FC = () => {
               </div>
             </main>
             
-            <FeedbackWidget />
       {showProfilePrompt && currentUser && (
             <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[999] flex items-center justify-center p-6 sm:p-12 overflow-y-auto overflow-x-hidden">
               <motion.div 

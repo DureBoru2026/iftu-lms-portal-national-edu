@@ -55,8 +55,6 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
       title: "Sovereign Tools",
       items: [
         { id: 'studyhall', label: 'Study Hall', icon: School },
-        { id: 'tutor', label: 'AI Tutor', icon: Bot },
-        { id: 'planner', label: 'AI Planner', icon: Calendar },
         { id: 'forum', label: 'Community', icon: MessageSquare },
       ]
     },

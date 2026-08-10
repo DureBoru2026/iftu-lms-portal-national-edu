@@ -168,9 +168,13 @@ const CertificatePortal: React.FC<CertificatePortalProps> = ({ user, course, exa
 
             {/* Footer / Seals */}
             <div className="w-full flex justify-between items-end mt-12 px-8">
-              <div className="text-left space-y-1">
-                <p className="text-sm font-bold uppercase">Date of Issue: {dateStr}</p>
-                <p className="text-sm font-bold uppercase">Prepared By: IFTU-LMS DIGITAL HUB</p>
+              <div className="text-left space-y-2">
+                <p className="text-[10px] font-bold uppercase text-gray-400">Date of Issue</p>
+                <p className="text-sm font-black uppercase">{dateStr}</p>
+                <div className="pt-4">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Registry Hash</p>
+                  <p className="text-[10px] font-mono break-all max-w-[200px] text-gray-500">SHA256: {btoa(user.id + title).slice(0, 32).toUpperCase()}</p>
+                </div>
               </div>
 
               <div className="relative">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { dbService } from '../services/dbService';
-import { VideoLabItem, Grade } from '../types';
+import { VideoLabItem, Grade, Stream } from '../types';
 import { Save, CheckCircle } from 'lucide-react';
 
 declare global {
@@ -24,7 +24,8 @@ export const VideoGenerator: React.FC = () => {
     title: '',
     description: '',
     subject: '',
-    grade: Grade.G12
+    grade: Grade.G12,
+    stream: Stream.NATURAL_SCIENCE
   });
 
   const [mode, setMode] = useState<'ai' | 'registry'>('ai');
@@ -46,17 +47,26 @@ export const VideoGenerator: React.FC = () => {
         url: finalUrl,
         subject: videoMeta.subject,
         grade: videoMeta.grade,
+        stream: videoMeta.stream,
         createdBy: 'National Registry Admin',
         createdAt: new Date().toISOString(),
         views: 0
       };
       await dbService.addVideo(newItem);
       
-      // Auto-trigger system broadcast or targeted notification
-      if (videoMeta.grade && videoMeta.subject) {
-         await dbService.broadcastNotification({
+      // Targeted notification for relevant students
+      if (videoMeta.grade && videoMeta.stream) {
+         await dbService.notifyRelevantStudents({
           title: '📜 Sovereign Intel Indexed',
-          message: `New ${videoMeta.subject} resource published for ${videoMeta.grade}: "${videoMeta.title}"`,
+          message: `New ${videoMeta.subject} resource published for your grade/stream: "${videoMeta.title}"`,
+          type: 'info',
+          createdAt: new Date().toISOString(),
+          isRead: false
+        }, videoMeta.grade, videoMeta.stream);
+      } else {
+        await dbService.broadcastNotification({
+          title: '📜 National Asset Indexed',
+          message: `New educational resource published: "${videoMeta.title}"`,
           type: 'info',
           createdAt: new Date().toISOString(),
           isRead: false
@@ -68,7 +78,7 @@ export const VideoGenerator: React.FC = () => {
         setSaveStatus('idle');
         if (mode === 'registry') {
           setUploadUrl('');
-          setVideoMeta({ title: '', description: '', subject: '', grade: Grade.G12 });
+          setVideoMeta({ title: '', description: '', subject: '', grade: Grade.G12, stream: Stream.NATURAL_SCIENCE });
         }
       }, 3000);
     } catch (err: any) {
@@ -248,6 +258,16 @@ export const VideoGenerator: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Target Stream</label>
+                  <select 
+                    className="w-full p-6 border-4 border-black rounded-2xl font-black"
+                    value={videoMeta.stream}
+                    onChange={e => setVideoMeta({...videoMeta, stream: e.target.value as Stream})}
+                  >
+                    {Object.values(Stream).map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-4">
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Intel Summary</label>
                   <textarea 
                     className="w-full p-6 border-4 border-black rounded-2xl font-black min-h-[100px]"
@@ -295,7 +315,7 @@ export const VideoGenerator: React.FC = () => {
 
               <div className="bg-purple-50 border-8 border-black rounded-[3rem] p-10 space-y-8">
                 <h3 className="text-3xl font-black uppercase italic border-b-4 border-black pb-4">Index Synthesized Intellectual Property</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   <div className="space-y-4">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Library Metadata: Title</label>
                     <input 
@@ -311,6 +331,16 @@ export const VideoGenerator: React.FC = () => {
                       value={videoMeta.subject}
                       onChange={e => setVideoMeta({...videoMeta, subject: e.target.value})}
                     />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Library Metadata: Stream</label>
+                    <select 
+                      className="w-full p-6 border-4 border-black rounded-2xl font-black"
+                      value={videoMeta.stream}
+                      onChange={e => setVideoMeta({...videoMeta, stream: e.target.value as Stream})}
+                    >
+                      {Object.values(Stream).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
                   </div>
                 </div>
                 <button 

@@ -1184,6 +1184,83 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   };
 
+  const handleDownloadExam = (exam: Exam) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(0, 0, 0);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("NATIONAL DIGITAL SOVEREIGN EDUCATION CENTER", pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text(`EXAM SCRIPT: ${exam.title.toUpperCase()}`, pageWidth / 2, 32, { align: 'center' });
+
+    // Exam Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Subject: ${exam.subject}`, 20, 50);
+    doc.text(`Grade: ${exam.grade}`, 20, 55);
+    doc.text(`Stream: ${exam.stream}`, 20, 60);
+    doc.text(`Academic Year: ${exam.academicYear}`, 20, 65);
+    doc.text(`Duration: ${exam.durationMinutes} Minutes`, pageWidth - 60, 50);
+    doc.text(`Total Points: ${exam.totalPoints}`, pageWidth - 60, 55);
+    
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(1);
+    doc.line(20, 70, pageWidth - 20, 70);
+
+    // Questions
+    let y = 85;
+    exam.questions.forEach((q, idx) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      const questionText = `${idx + 1}. ${q.text} (${q.points} pts)`;
+      const lines = doc.splitTextToSize(questionText, pageWidth - 40);
+      doc.text(lines, 20, y);
+      y += (lines.length * 7);
+
+      if (q.options && q.options.length > 0) {
+        doc.setFont("helvetica", "normal");
+        q.options.forEach((opt, optIdx) => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          const optText = `   ${String.fromCharCode(65 + optIdx)}) ${opt}`;
+          doc.text(optText, 25, y);
+          y += 6;
+        });
+      } else {
+        y += 10; // Space for answer
+        doc.setDrawColor(200, 200, 200);
+        doc.line(25, y, pageWidth - 30, y);
+        y += 5;
+      }
+      y += 8;
+    });
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`IFTU-LMS SOVEREIGN REGISTRY | Page ${i} of ${pageCount} | SHA256: ${btoa(exam.id).slice(0, 16)}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+    }
+
+    doc.save(`${exam.title.replace(/\s+/g, '_')}_Script.pdf`);
+    showNotification("Exam Paper generated and downloaded.", "success");
+  };
+
   const handleSelectAllExams = () => {
     if (selectedExams.length === exams.length && exams.length > 0) {
       setSelectedExams([]);
@@ -2399,7 +2476,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="space-y-8">
                        <div className="bg-black text-white p-10 rounded-[3rem] border-4 border-black relative overflow-hidden group">
                           <ArrowRight className="absolute bottom-4 right-4 w-12 h-12 text-blue-600/30 group-hover:text-blue-400 transition-all group-hover:scale-125" />
-                          <h3 className="text-3xl font-black uppercase italic mb-6">Regional Commands</h3>
+                          <h3 className="text-4xl font-black uppercase italic mb-8">Regional Commands</h3>
                           <div className="space-y-6 text-sm">
                             <div className="border-l-4 border-amber-400 pl-4 py-1">
                               <a 
@@ -2408,11 +2485,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 rel="noopener noreferrer"
                                 className="block space-y-1 group"
                               >
-                                <p className="font-black text-amber-300 uppercase text-[10px] tracking-widest flex items-center gap-2">
+                                <p className="font-black text-amber-300 uppercase text-xs tracking-widest flex items-center gap-2">
                                   <ExternalLink className="w-3.5 h-3.5 text-amber-300 group-hover:translate-x-1 transition-transform" />
                                   Moosaajii Barsiisotaa (TMIS) 🔗
                                 </p>
-                                <p className="font-bold leading-snug text-gray-200">Oromia Education Bureau Teacher Information Management System (https://tmis.oeb.gov.et/)</p>
+                                <p className="font-bold leading-snug text-gray-100">Biiroo Barnootaa Oromiyaa • Teacher Information Management System</p>
                               </a>
                             </div>
                             <button 
@@ -2431,18 +2508,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               }}
                               className="w-full text-left border-l-4 border-blue-600 pl-4 py-2 hover:bg-blue-900/40 transition-colors"
                             >
-                              <p className="font-black text-blue-400 uppercase text-[10px] tracking-widest mb-1 flex items-center gap-2">
+                              <p className="font-black text-blue-400 uppercase text-xs tracking-widest mb-1 flex items-center gap-2">
                                 <Activity className="w-3 h-3" />
                                 Sync National News Feed
                               </p>
-                              <p className="font-bold leading-snug">Fetch latest bulletins from the Sovereign Ministry archive.</p>
+                              <p className="font-bold leading-snug text-gray-100">Fetch latest educational bulletins from the Sovereign Ministry archive.</p>
                             </button>
                             <div className="border-l-4 border-green-600 pl-4">
-                              <p className="font-black text-green-400 uppercase text-[10px] tracking-widest mb-1">Identity Management</p>
+                              <p className="font-black text-green-400 uppercase text-xs tracking-widest mb-1">Identity Management</p>
                               <p className="font-bold leading-snug">Authorized admins can manually register citizens via the "Identity Registry" tab. Every citizen receives a unique <strong className="text-blue-600">Sovereign Index</strong>.</p>
                             </div>
                             <div className="border-l-4 border-rose-600 pl-4">
-                              <p className="font-black text-rose-400 uppercase text-[10px] tracking-widest mb-1">Audit Protocol</p>
+                              <p className="font-black text-rose-400 uppercase text-xs tracking-widest mb-1">Audit Protocol</p>
                               <p className="font-bold leading-snug">Generate National Reports and secure PDF assets for governmental oversight.</p>
                             </div>
                           </div>
@@ -5167,6 +5244,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         title="Show QR for Mobile Exam Browser (ExamLock)"
                       >
                         <QrCode size={13} /> Mobile QR
+                      </button>
+                      <button 
+                        onClick={() => handleDownloadExam(exam)}
+                        className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg border-2 border-green-400 font-black uppercase text-[10px] flex items-center gap-1.5 hover:bg-green-200 transition-colors"
+                        title="Download Exam Script (PDF)"
+                      >
+                        <Download size={13} /> Download
                       </button>
                       <button onClick={() => { setEditingExam(exam); setExamForm(exam); setIsAddingExam(true); }} className="bg-black text-white px-4 py-1.5 rounded-lg border-2 border-black font-black uppercase text-[10px] hover:bg-gray-800 transition-colors">Edit</button>
                       <button onClick={() => {

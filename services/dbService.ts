@@ -1,5 +1,6 @@
 
 import { db, auth } from '../firebase';
+import { fetchLatestEducationNews } from './geminiService';
 import { collection, getDocs, doc, setDoc, deleteDoc, query, where, updateDoc, onSnapshot, Unsubscribe, addDoc, orderBy, limit, getDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { User, ExamResult, Course, Exam, News, Assignment, AssignmentSubmission, AppNotification, VideoLabItem, Question, Grade, Stream, Enrollment, SystemSettings } from '../types';
@@ -1143,42 +1144,37 @@ export const dbService = {
   },
 
   async syncNationalNews() {
-    const nationalFeed: News[] = [
-      {
-        id: 'news_nat_001',
-        title: 'Ministry Launches Sovereign Digital Infrastructure',
-        summary: 'The Ministry of Education has inaugurated a new high-speed server cluster dedicated to the National Sovereign Education Network.',
-        content: 'This infrastructure will power region-specific learning modules and secure student registries across the country.',
-        category: 'announcement',
-        tag: 'SOVEREIGN',
-        date: new Date().toISOString().split('T')[0],
-        image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'
-      },
-      {
-        id: 'news_nat_002',
-        title: 'National Grade 12 Verification Protocol Updated',
-        summary: 'New blockchain-based verification system for national exam results to be deployed for the 2026 academic cycle.',
-        content: 'Students can now verify their certificates instantly using the unified registry portal, ensuring absolute document integrity.',
-        category: 'exam',
-        tag: 'EXAMS',
-        date: new Date().toISOString().split('T')[0],
-        image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=800'
-      },
-      {
-        id: 'news_nat_003',
-        title: 'Expansion of National Open University Satellite Hubs',
-        summary: '50 new satellite campuses launched to reach remote sovereign educational zones.',
-        content: 'The expansion focuses on bridging the digital divide by providing localized access to advanced tertiary education modules.',
-        category: 'academic',
-        tag: 'ACADEMIC',
-        date: new Date().toISOString().split('T')[0],
-        image: 'https://images.unsplash.com/photo-1541339907198-e08756eaa539?auto=format&fit=crop&q=80&w=800'
+    try {
+      const realNews = await fetchLatestEducationNews();
+      
+      if (realNews && realNews.length > 0) {
+        for (const news of realNews) {
+          await this.addNews(news);
+        }
+        return realNews.length;
       }
-    ];
 
-    for (const news of nationalFeed) {
-      await this.addNews(news);
+      // Fallback if Gemini fails or returns empty
+      const nationalFeed: News[] = [
+        {
+          id: 'news_nat_001',
+          title: 'Ministry Launches Sovereign Digital Infrastructure',
+          summary: 'The Ministry of Education has inaugurated a new high-speed server cluster dedicated to the National Sovereign Education Network.',
+          content: 'This infrastructure will power region-specific learning modules and secure student registries across the country.',
+          category: 'announcement',
+          tag: 'SOVEREIGN',
+          date: new Date().toISOString().split('T')[0],
+          image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'
+        }
+      ];
+
+      for (const news of nationalFeed) {
+        await this.addNews(news);
+      }
+      return nationalFeed.length;
+    } catch (error) {
+      console.error("Failed to sync national news:", error);
+      return 0;
     }
-    return nationalFeed.length;
   }
 };

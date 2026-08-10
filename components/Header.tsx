@@ -75,8 +75,6 @@ const Header: React.FC<HeaderProps> = ({
     { id: 'assignments', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator'] },
     { id: 'studyhall', roles: ['student'] },
     { id: 'forum', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator'] },
-    { id: 'planner', roles: ['student'] },
-    { id: 'tutor', roles: ['student'] },
     { id: 'performance', roles: ['student'] },
     { id: 'leaderboard', roles: ['student', 'teacher', 'admin'] },
     { id: 'profile', roles: ['student'] },

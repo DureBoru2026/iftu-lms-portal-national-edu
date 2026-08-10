@@ -70,9 +70,9 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
     return (
       <div 
         onClick={handleOpenDirect}
-        className="bg-gradient-to-br from-red-950 via-neutral-900 to-black text-white border-8 border-black rounded-[3.5rem] p-8 shadow-[20px_20px_0px_0px_rgba(220,38,38,0.4)] flex flex-col justify-between gap-6 hover:translate-y-[-4px] transition-all cursor-pointer relative overflow-hidden group"
+        className="bg-white text-black border-8 border-black rounded-[3.5rem] p-8 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between gap-6 hover:translate-y-[-4px] transition-all cursor-pointer relative overflow-hidden group"
       >
-        {/* Subtle Oromia Flag Accent Line top border */}
+        {/* Oromia Flag Accent Line top border */}
         <div className="absolute top-0 left-0 right-0 h-3 flex">
           <div className="flex-1 bg-red-600" />
           <div className="flex-1 bg-white" />
@@ -84,27 +84,27 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
             <div className="flex items-center gap-3">
               <BBOTimsLogo size="sm" />
               <div>
-                <span className="bg-yellow-400 text-black px-3 py-1 rounded-xl font-black text-[9px] uppercase tracking-wider border border-black italic">
+                <span className="bg-black text-white px-3 py-1 rounded-xl font-black text-[9px] uppercase tracking-wider border border-black italic">
                   🌳 BBO Official TMIS Portal
                 </span>
-                <p className="text-[10px] font-black uppercase text-amber-300 mt-1">Biiroo Barnootaa Oromiyaa</p>
+                <p className="text-[10px] font-black uppercase text-gray-500 mt-1">Biiroo Barnootaa Oromiyaa</p>
               </div>
             </div>
-            <span className="bg-emerald-500 text-black font-black text-[9px] uppercase px-3 py-1 rounded-full border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <span className="bg-emerald-100 text-emerald-800 font-black text-[9px] uppercase px-3 py-1 rounded-full border-2 border-emerald-500">
               Direct Access
             </span>
           </div>
 
-          <h3 className="text-2xl font-black uppercase italic tracking-tight text-white leading-tight">
+          <h3 className="text-2xl font-black uppercase italic tracking-tight text-black leading-tight">
             Teacher Information Management System (TMIS)
           </h3>
 
-          <div className="bg-amber-950/80 border-2 border-amber-400/60 p-3 rounded-2xl text-xs font-bold text-amber-100 leading-relaxed italic">
-            📌 <strong className="text-yellow-300">Beeksisa Jijjiirraa Barsiisotaa:</strong> Barsiisoonni dhimma jijjiirraa guutuu fi galmee odeeffannoo BBO sakatta'uuf kallattiin seensa tokko malee fayyadamaa.
+          <div className="bg-gray-50 border-2 border-black/10 p-3 rounded-2xl text-xs font-bold text-gray-700 leading-relaxed italic">
+            📌 <strong className="text-red-600">Beeksisa Jijjiirraa Barsiisotaa:</strong> Barsiisoonni dhimma jijjiirraa guutuu fi galmee odeeffannoo BBO sakatta'uuf kallattiin seensa tokko malee fayyadamaa.
           </div>
         </div>
 
-        <div className="pt-4 border-t-2 border-white/20 flex flex-wrap items-center justify-between gap-3 relative z-10">
+        <div className="pt-4 border-t-2 border-black/5 flex flex-wrap items-center justify-between gap-3 relative z-10">
           <div className="flex items-center gap-2">
             <a 
               href={telegramShareUrl}
@@ -148,7 +148,7 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
   }
 
   return (
-    <div className="bg-gradient-to-r from-red-950 via-neutral-900 to-black text-white border-[10px] border-black rounded-[4rem] md:rounded-[5rem] p-8 md:p-14 shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden space-y-8 animate-fadeIn">
+    <div className="bg-white text-black border-[10px] border-black rounded-[4rem] md:rounded-[5rem] p-8 md:p-14 shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden space-y-8 animate-fadeIn">
       {/* Flag accent stripe */}
       <div className="absolute top-0 left-0 right-0 h-4 flex">
         <div className="flex-1 bg-red-600" />
@@ -157,7 +157,7 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
       </div>
 
       {/* Background Decorative Seals */}
-      <div className="absolute -top-12 -right-12 text-[16rem] opacity-10 pointer-events-none select-none font-black text-amber-400">
+      <div className="absolute -top-12 -right-12 text-[16rem] opacity-5 pointer-events-none select-none font-black text-gray-200">
         🌳
       </div>
 
@@ -166,10 +166,10 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
           <BBOTimsLogo size="lg" />
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-yellow-400 text-black px-4 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] italic">
+              <span className="bg-black text-white px-4 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-black italic">
                 🌳 Biiroo Barnootaa Oromiyaa (BBO)
               </span>
-              <span className="bg-emerald-400 text-black px-4 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1.5">
+              <span className="bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-emerald-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4" /> Aksesii Kallattii (Direct Public Access)
               </span>
               <span className="bg-red-600 text-white px-3 py-1 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-black">
@@ -177,12 +177,12 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
               </span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-tight text-white drop-shadow-md">
+            <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-tight text-black drop-shadow-sm">
               Moosaajii Barsiisotaa (TMIS) Portal
             </h2>
 
-            <p className="text-sm md:text-base font-bold text-amber-300 uppercase tracking-widest italic flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-400" />
+            <p className="text-sm md:text-base font-bold text-gray-500 uppercase tracking-widest italic flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500" />
               Teacher Information Management System • Oromia Education Bureau
             </p>
           </div>
@@ -191,10 +191,10 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
         <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto shrink-0">
           <button
             onClick={handleCopy}
-            className="flex-1 lg:flex-none bg-black/80 hover:bg-black text-amber-300 border-4 border-amber-400/50 px-6 py-4 rounded-3xl font-black uppercase text-xs shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center justify-center gap-2"
+            className="flex-1 lg:flex-none bg-white hover:bg-gray-100 text-black border-4 border-black px-6 py-4 rounded-3xl font-black uppercase text-xs shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center justify-center gap-2"
             title="Waraabbi Oduu & Link"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Waraabbameera!' : 'Waraabi (Copy)'}
           </button>
 
@@ -202,7 +202,7 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
             href={timsUrl} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex-1 lg:flex-none bg-yellow-400 hover:bg-yellow-300 text-black px-10 py-5 rounded-3xl border-4 border-black font-black uppercase text-sm md:text-base shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-3 group"
+            className="flex-1 lg:flex-none bg-red-600 hover:bg-red-500 text-white px-10 py-5 rounded-3xl border-4 border-black font-black uppercase text-sm md:text-base shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-3 group"
           >
             <ExternalLink className="w-5 h-5 group-hover:scale-125 transition-transform" />
             <span>Bani TMIS Portal</span>
@@ -212,11 +212,11 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
       </div>
 
       {/* Teacher Transfer Special Bulletin Box */}
-      <div className="bg-amber-950/90 border-4 border-amber-400/80 rounded-3xl p-6 md:p-8 space-y-4 backdrop-blur-md relative z-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-amber-400/40 pb-4">
-          <div className="flex items-center gap-3 text-yellow-300">
-            <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
-            <h4 className="text-lg md:text-xl font-black uppercase italic text-yellow-300">
+      <div className="bg-gray-50 border-4 border-black rounded-3xl p-6 md:p-8 space-y-4 relative z-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-4">
+          <div className="flex items-center gap-3 text-black">
+            <Sparkles className="w-6 h-6 text-amber-500 animate-pulse" />
+            <h4 className="text-lg md:text-xl font-black uppercase italic text-black">
               📢 Beeksisa Haaromsaa: Dhimma Jijjiirraa Barsiisotaa (Teacher Transfer)
             </h4>
           </div>
@@ -252,24 +252,24 @@ export const BBOTimsBanner: React.FC<{ variant?: 'full' | 'card' }> = ({ variant
           </div>
         </div>
 
-        <p className="text-sm md:text-base text-gray-100 font-medium leading-relaxed italic">
+        <p className="text-sm md:text-base text-gray-700 font-medium leading-relaxed italic">
           Biiroo Barnootaa Oromiyaa (BBO) akka ibsetti, barsiisoonni dhimma jijjiirraa (Teacher Transfer) guutuuf, eeyyama barsiisummaa sakatta'uu fi odeeffannoo tajaajilaa isaanii haaromsuuf moosaajii TMIS kallattiin fayyadamuu danda'u. Linkii kana fayyadamuun ulaagaalee seensa tokko malee qaqqabaa:
         </p>
 
         <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-black uppercase text-amber-300 bg-black/60 px-3 py-1 rounded-lg border border-amber-500/30">Official TMIS Link:</span>
+            <span className="text-xs font-black uppercase text-gray-500 bg-gray-200 px-3 py-1 rounded-lg border border-black/10">Official TMIS Link:</span>
             <a 
               href={timsUrl} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-yellow-300 font-mono font-black text-sm md:text-base underline hover:text-white transition-colors bg-black px-4 py-1.5 rounded-xl border border-yellow-400/40"
+              className="text-red-600 font-mono font-black text-sm md:text-base underline hover:text-black transition-colors bg-white px-4 py-1.5 rounded-xl border-2 border-black"
             >
               {timsUrl}
             </a>
           </div>
 
-          <span className="text-xs font-bold text-amber-200 bg-emerald-950/80 px-3 py-1 rounded-xl border border-emerald-400/40">
+          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border-2 border-emerald-500/20">
             ✓ 2026 Sovereign Official Verified
           </span>
         </div>
