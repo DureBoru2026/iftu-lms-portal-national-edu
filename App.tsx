@@ -26,6 +26,7 @@ import { StudyHall } from './components/StudyHall';
 import CommunityForum from './components/CommunityForum';
 import StudyPlanner from './components/StudyPlanner';
 import { dbService } from './services/dbService';
+import { BBOTimsBanner } from './components/BBOTimsBanner';
 
 import { StudentSidebar } from './components/StudentSidebar';
 
@@ -227,7 +228,14 @@ const App: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>(MOCK_COURSES);
   const [exams, setExams] = useState<Exam[]>(MOCK_EXAMS);
   const [news, setNews] = useState<News[]>(MOCK_NEWS as News[]);
-  const [currentLang, setCurrentLang] = useState<Language>('en');
+  const [currentLang, setCurrentLang] = useState<Language>(() => {
+    return (localStorage.getItem('iftu_pref_lang') as Language) || 'en';
+  });
+
+  const handleLangChange = (lang: Language) => {
+    setCurrentLang(lang);
+    localStorage.setItem('iftu_pref_lang', lang);
+  };
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isDemoSession, setIsDemoSession] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -247,7 +255,20 @@ const App: React.FC = () => {
   const [preSelectedExamId, setPreSelectedExamId] = useState<string | null>(null);
   const [activeOralTopic, setActiveOralTopic] = useState<string | null>(null);
   const [userResults, setUserResults] = useState<ExamResult[]>([]);
-  const [simulatedMessages, setSimulatedMessages] = useState<{id: string, text: string, date: string}[]>([]);
+  const [simulatedMessages, setSimulatedMessages] = useState<{id: string, to?: string, text: string, date: string}[]>([
+    {
+      id: 'SMS-901842',
+      to: '+251 911 223 344',
+      text: 'Welcome to IFTU LMS! Login Email: barataa@iftu.edu.et | Temp Pass: ET-2025-9988. Portal: https://iftu.edu.et',
+      date: `Today, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    },
+    {
+      id: 'SMS-884102',
+      to: '+251 922 445 566',
+      text: 'IFTU Alert: National Grade 12 Natural Science Exam Registration confirmation dispatched. Verified by MoE.',
+      date: `Today, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    }
+  ]);
   const [viewingCourse, setViewingCourse] = useState<Course | null>(null);
   const [groundedNews, setGroundedNews] = useState<{ text: string, sources: any[] } | null>(null);
   const [isSyncingNews, setIsSyncingNews] = useState(false);
@@ -1469,8 +1490,10 @@ const App: React.FC = () => {
               }
             }}
             onSendSMS={(to, msg) => {
-              setSimulatedMessages(prev => [{ id: Date.now().toString(), text: msg, date: new Date().toLocaleTimeString() }, ...prev]);
+              setSimulatedMessages(prev => [{ id: `SMS-${Date.now().toString().slice(-6)}`, to: to || '+251 911 000 000', text: msg, date: new Date().toLocaleTimeString() }, ...prev]);
             }}
+            smsLogs={simulatedMessages}
+            onClearSMSLogs={() => setSimulatedMessages([])}
             onNavClick={handleNavClick}
             currentUser={currentUser || undefined}
           />
@@ -1819,6 +1842,9 @@ const App: React.FC = () => {
               </div>
             )}
 
+            {/* Official BBO TIMS Portal Banner - Public Access */}
+            <BBOTimsBanner variant="full" />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
               <div className="lg:col-span-2 space-y-16">
                 <h3 className="text-4xl font-black uppercase italic tracking-tighter text-blue-900">Latest Updates.</h3>
@@ -1837,8 +1863,37 @@ const App: React.FC = () => {
                       <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">{n.title}</h3>
                       <div className="h-2 w-24 bg-black"></div>
                       <p className="text-lg leading-relaxed text-gray-700 whitespace-pre-wrap font-medium">{n.content}</p>
+                      
+                      {/* Social Media Share Section */}
+                      <div className="pt-6 border-t-4 border-black flex flex-wrap items-center justify-between gap-4">
+                        <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Share Bulletin:</span>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const text = `📢 ${n.title}\n\n${n.summary || ''}\n\nRead more on IFTU LMS:`;
+                              window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
+                            }}
+                            className="bg-[#229ED9] text-white px-4 py-2 rounded-xl border-2 border-black font-black uppercase text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-2"
+                            title="Share directly to Telegram"
+                          >
+                            <span>✈️</span> Telegram
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
+                            className="bg-[#1877F2] text-white px-4 py-2 rounded-xl border-2 border-black font-black uppercase text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-2"
+                            title="Share directly to Facebook"
+                          >
+                            <span>f</span> Facebook
+                          </button>
+                        </div>
+                      </div>
+
                       {n.tag && (
-                        <div className="flex flex-wrap gap-2 pt-4">
+                        <div className="flex flex-wrap gap-2 pt-2">
                           <span className="text-xs font-black uppercase text-blue-600">#{n.tag}</span>
                         </div>
                       )}
@@ -2380,7 +2435,10 @@ const App: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {news.slice(0, 4).map((n, i) => (
+                {/* Featured Public BBO TIMS Portal Banner */}
+                <BBOTimsBanner variant="card" />
+
+                {news.slice(0, 3).map((n, i) => (
                   <motion.div 
                     key={n.id}
                     initial={{ opacity: 0, y: 30 }}
@@ -2410,8 +2468,33 @@ const App: React.FC = () => {
                       <p className="text-lg font-bold text-gray-500 italic leading-relaxed line-clamp-2">
                         {n.summary}
                       </p>
-                      <div className="pt-4 flex items-center gap-4 text-blue-600 font-black uppercase text-sm italic group-hover:translate-x-2 transition-transform">
-                        Read Official Bulletin <span>→</span>
+                      <div className="pt-4 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 text-blue-600 font-black uppercase text-sm italic group-hover:translate-x-2 transition-transform">
+                          Read Official Bulletin <span>→</span>
+                        </div>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const text = `📢 ${n.title}\n\n${n.summary || ''}\n\nRead more on IFTU LMS:`;
+                              window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
+                            }}
+                            className="bg-[#229ED9] text-white px-3 py-1.5 rounded-lg border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-1"
+                            title="Share to Telegram"
+                          >
+                            ✈️ Telegram
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
+                            className="bg-[#1877F2] text-white px-3 py-1.5 rounded-lg border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-1"
+                            title="Share to Facebook"
+                          >
+                            f Facebook
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -2660,7 +2743,7 @@ const App: React.FC = () => {
                 onLogout={async () => { await auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); handleNavClick('home'); }} 
                 onLoginClick={() => handleNavClick('login')} 
                 currentLang={currentLang} 
-                onLangChange={setCurrentLang} 
+                onLangChange={handleLangChange} 
                 t={t} 
                 accessibilitySettings={{}} 
                 onAccessibilityChange={() => {}} 

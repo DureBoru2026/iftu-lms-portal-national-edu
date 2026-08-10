@@ -6,7 +6,7 @@ import {
   Menu, X, ChevronRight, ShieldCheck,
   LayoutDashboard, LogOut, ArrowRight,
   TrendingUp, Settings, Plus, Search,
-  Bell, Activity, Users, Sparkles, Rocket
+  Bell, Activity, Users, Sparkles, Rocket, ExternalLink
 } from 'lucide-react';
 import { User, Exam, Question, Grade, Stream, QuestionType, Course, Lesson, Difficulty, Assignment, AssignmentSubmission, EducationLevel, ExamType, CourseMaterial } from '../types';
 import { parseExamDocument, generateExamQuestions, parseExamFromDocument, generateQuizFromLessonContent } from '../services/geminiService';
@@ -1544,8 +1544,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
       {/* Main Content Area */}
       <main 
-        className={`flex-1 transition-all duration-500 p-4 md:p-12 min-w-0 flex flex-col w-full max-w-full overflow-x-hidden ${
-          isSidebarOpen ? 'lg:ml-80' : 'md:ml-24'
+        className={`flex-1 transition-all duration-500 p-4 md:p-8 lg:p-12 min-w-0 flex flex-col w-full max-w-full overflow-x-hidden ${
+          isSidebarOpen ? 'md:ml-80' : 'md:ml-24'
         }`}
       >
         {/* Mobile Header */}
@@ -1565,20 +1565,20 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <NotificationCenter userId={currentUser.id} />
           
           {/* Header Bar */}
-          <div className="bg-black text-white p-8 md:p-12 rounded-[3.5rem] md:rounded-[5rem] border-8 border-black shadow-[15px_15px_0px_0px_rgba(249,115,22,1)] md:shadow-[25px_25px_0px_0px_rgba(249,115,22,1)] flex flex-col md:flex-row justify-between items-center gap-8 md:gap-10">
-            <div className="text-center md:text-left">
-               <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white">
+          <div className="bg-black text-white p-6 md:p-12 rounded-[3rem] md:rounded-[5rem] border-4 md:border-8 border-black shadow-[10px_10px_0px_0px_rgba(249,115,22,1)] md:shadow-[25px_25px_0px_0px_rgba(249,115,22,1)] flex flex-col md:flex-row justify-between items-center gap-6 md:gap-10">
+            <div className="text-center md:text-left min-w-0">
+               <h2 className="text-3xl sm:text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none text-white break-words">
                  {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || 'Faculty Command'}.
                </h2>
                <p className="text-orange-400 font-black uppercase tracking-widest text-[10px] mt-4">Authorized Faculty Hub: {currentUser?.name}</p>
             </div>
-            <div className="flex gap-8 md:gap-12">
+            <div className="flex gap-6 md:gap-12 shrink-0">
                <div className="text-center group">
-                  <p className="text-4xl md:text-6xl font-black italic group-hover:text-orange-400 transition-colors">{exams.length}</p>
+                  <p className="text-3xl md:text-6xl font-black italic group-hover:text-orange-400 transition-colors">{exams.length}</p>
                   <p className="text-[10px] font-black uppercase opacity-60">Exams</p>
                </div>
                <div className="text-center group">
-                  <p className="text-4xl md:text-6xl font-black italic text-blue-400 group-hover:text-blue-300 transition-colors">{courses.length}</p>
+                  <p className="text-3xl md:text-6xl font-black italic text-blue-400 group-hover:text-blue-300 transition-colors">{courses.length}</p>
                   <p className="text-[10px] font-black uppercase opacity-60">Modules</p>
                </div>
             </div>

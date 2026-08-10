@@ -1,7 +1,7 @@
 {
-  "name": "IFTU LMS - National Digital Sovereign Education Center",
-  "short_name": "IFTU Portal",
-  "description": "National Digital Sovereign Education Center - Official LMS for Ethiopian Secondary & TVET. Managed by Jemal Fano Haji.",
+  "name": "IFTU LMS - Secondary School & TVET",
+  "short_name": "IFTU LMS",
+  "description": "IFTU LMS Secondary School and TVET - Private Educational Platform Aligned with Ethiopian Ministry of Education Standards. Managed by Jemal Fano Haji.",
   "requestFramePermissions": [
     "camera",
     "microphone",

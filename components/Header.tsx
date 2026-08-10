@@ -157,13 +157,18 @@ const Header: React.FC<HeaderProps> = ({
               </button>
               <div className={`w-3 h-3 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} title={isOnline ? 'Online' : 'Offline'}></div>
               <div className="flex gap-1 bg-gray-100 p-1.5 rounded-xl border-4 border-black">
-              {(['en', 'am', 'om'] as Language[]).map(l => (
+              {[
+                { code: 'en' as Language, label: 'EN', name: 'English' },
+                { code: 'am' as Language, label: 'አማ', name: 'አማርኛ' },
+                { code: 'om' as Language, label: 'OM', name: 'Afaan Oromoo' }
+              ].map(({ code, label, name }) => (
                 <button 
-                  key={l} 
-                  onClick={() => onLangChange(l)} 
-                  className={`px-2 py-1 rounded-lg border-2 border-black text-[8px] font-black uppercase transition-colors ${currentLang === l ? 'bg-[#FFD700]' : 'bg-white hover:bg-gray-200'}`}
+                  key={code} 
+                  onClick={() => onLangChange(code)} 
+                  title={`Switch language to ${name}`}
+                  className={`px-2.5 py-1 rounded-lg border-2 border-black text-[9px] font-black uppercase transition-all ${currentLang === code ? 'bg-[#FFD700] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-200'}`}
                 >
-                  {l}
+                  {label}
                 </button>
               ))}
               </div>
@@ -233,13 +238,17 @@ const Header: React.FC<HeaderProps> = ({
                       </div>
                       
                       <div className="flex gap-2">
-                        {(['en', 'am', 'om'] as Language[]).map(l => (
+                        {[
+                          { code: 'en' as Language, name: 'English' },
+                          { code: 'am' as Language, name: 'አማርኛ' },
+                          { code: 'om' as Language, name: 'Afaan Oromoo' }
+                        ].map(({ code, name }) => (
                           <button 
-                            key={l} 
-                            onClick={() => onLangChange(l)} 
-                            className={`flex-1 py-2 rounded-xl border-4 border-black text-[10px] font-black uppercase transition-colors ${currentLang === l ? 'bg-[#FFD700]' : 'bg-white'}`}
+                            key={code} 
+                            onClick={() => onLangChange(code)} 
+                            className={`flex-1 py-2 rounded-xl border-4 border-black text-[10px] font-black uppercase transition-colors ${currentLang === code ? 'bg-[#FFD700] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white'}`}
                           >
-                            {l}
+                            {name}
                           </button>
                         ))}
                       </div>

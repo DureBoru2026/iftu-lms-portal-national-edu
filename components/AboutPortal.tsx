@@ -90,6 +90,75 @@ const AboutPortal: React.FC<AboutPortalProps> = ({ currentUser }) => {
         </div>
       </section>
 
+      {/* Application Overview Section (Ibsa Waa'ee Applikeeshinii) */}
+      <section className="bg-emerald-900 text-white border-[10px] border-black rounded-[5rem] p-10 md:p-20 shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+        <div className="space-y-12 relative z-10">
+          <div className="space-y-4 border-b-4 border-emerald-700 pb-8">
+             <span className="bg-yellow-400 text-black px-6 py-2 rounded-xl font-black uppercase text-xs tracking-widest italic border-2 border-black">
+               📌 1. Ibsa Waa'ee Applikeeshinii (Application Overview)
+             </span>
+             <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-tight text-white">
+               IFTU LMS Secondary School & TVET Overview.
+             </h3>
+             <p className="text-emerald-200 font-bold text-lg italic">
+               Moosaajii Barnoota Dhuunfaa IFTU LMS Secondary School & TVET - Haala Mootummaa Ministeera Barnoota Itoophiyaatiin kan Qophaa'e.
+             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-emerald-950/80 border-4 border-emerald-400 p-8 rounded-[2.5rem] space-y-4 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-3 text-yellow-400">
+                <span className="text-3xl">🇪🇹</span>
+                <h4 className="text-xl font-black uppercase italic">National Digital Sovereign Education Portal</h4>
+              </div>
+              <p className="text-base font-bold text-emerald-100 leading-relaxed italic">
+                IFTU LMS'n sirna barnootaa biyyooleessaa Itoophiyaa (Kutaa 9-12 Stream Natural Science, Social Science, fi TVET) haala ammayyaatiin qindaayeera.
+              </p>
+            </div>
+
+            <div className="bg-emerald-950/80 border-4 border-emerald-400 p-8 rounded-[2.5rem] space-y-4 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-3 text-yellow-400">
+                <span className="text-3xl">📝</span>
+                <h4 className="text-xl font-black uppercase italic">Exam Engine & Exam Architect</h4>
+              </div>
+              <p className="text-base font-bold text-emerald-100 leading-relaxed italic">
+                Qormaata biyyooleessaa (EAES Exit Exam, Mock-EAES, Midterm, Quiz) qopheessuuf, qorachuuf fi sakatta'uuf gargaara.
+              </p>
+            </div>
+
+            <div className="bg-emerald-950/80 border-4 border-emerald-400 p-8 rounded-[2.5rem] space-y-4 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-3 text-yellow-400">
+                <span className="text-3xl">🔒</span>
+                <h4 className="text-xl font-black uppercase italic">Safe Exam Browser (SEB) & Mobile QR</h4>
+              </div>
+              <p className="text-base font-bold text-emerald-100 leading-relaxed italic">
+                Qormaata bilbilaa fi kompiutaraan haala nagaa ta'een qoruuf QR Code fi qajeelfama SEB qaba.
+              </p>
+            </div>
+
+            <div className="bg-emerald-950/80 border-4 border-emerald-400 p-8 rounded-[2.5rem] space-y-4 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-3 text-yellow-400">
+                <span className="text-3xl">🪪</span>
+                <h4 className="text-xl font-black uppercase italic">Sovereign User Registry</h4>
+              </div>
+              <p className="text-base font-bold text-emerald-100 leading-relaxed italic">
+                Galmee barattootaa fi barsiistotaa NID (National Digital ID), Sovereign Index, fi Gender waliin qaba.
+              </p>
+            </div>
+
+            <div className="bg-emerald-950/80 border-4 border-emerald-400 p-8 rounded-[2.5rem] space-y-4 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] md:col-span-2">
+              <div className="flex items-center gap-3 text-yellow-400">
+                <span className="text-3xl">📱</span>
+                <h4 className="text-xl font-black uppercase italic">National SMS Gateway & Diagnostics Log</h4>
+              </div>
+              <p className="text-base font-bold text-emerald-100 leading-relaxed italic">
+                Ergaa SMS fi credentials barattootaaf erguu akkasumas logii isaanii CSV'n fe'uuf tajaajila.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Message Section */}
       <section className="bg-blue-900 text-white border-[10px] border-black rounded-[5rem] p-12 md:p-24 shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
         <div className="absolute -bottom-20 -right-20 text-[20rem] opacity-10 pointer-events-none select-none">⚡</div>

@@ -8,7 +8,7 @@ import {
   Database, Settings, ShieldCheck, Sparkles,
   Zap, Award, Target, Activity, Terminal, ArrowRight,
   Play, Plus, Search, FilePlus, ExternalLink, FileDown,
-  Copy, Check, QrCode, Key
+  Copy, Check, QrCode, Key, MessageSquare, Send, FileSpreadsheet, Download, Smartphone, LogOut
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { User, Grade, EducationLevel, Course, UserPermissions, Stream, Exam, News, Lesson, Language, ExamResult, Question, Assignment, AssignmentSubmission, AppNotification, ExamType, CourseMaterial, Difficulty, VideoLabItem, Enrollment, SystemSettings } from '../types';
@@ -263,6 +263,8 @@ interface AdminDashboardProps {
   onUpdateNews: (news: News) => void;
   onDeleteNews: (id: string) => void;
   onSendSMS?: (to: string, message: string) => void;
+  smsLogs?: { id: string; to?: string; text: string; date: string }[];
+  onClearSMSLogs?: () => void;
   onAddExam?: (exam: Exam) => void;
   onUpdateExam?: (exam: Exam) => void;
   onDeleteExam?: (id: string) => void;
@@ -320,6 +322,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddAssignment, onUpdateAssignment, onDeleteAssignment,
   onUpdateSubmission,
   onSendSMS,
+  smsLogs = [],
+  onClearSMSLogs,
   onNavClick,
   currentUser
 }) => {
@@ -414,6 +418,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [createdCredentials, setCreatedCredentials] = useState<{email: string; pass: string; name: string} | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [qrContent, setQrContent] = useState({ title: '', url: '' });
+  const [smsPhone, setSmsPhone] = useState('');
+  const [smsText, setSmsText] = useState('');
 
   const manualAddRef = useRef(false);
 
@@ -1397,6 +1403,35 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   });
 
   // EXPORT LOGIC
+  const handleExportSMSLogsCSV = () => {
+    const logsToExport = (smsLogs && smsLogs.length > 0) ? smsLogs : [
+      { id: 'SMS-901842', to: '+251 911 223 344', text: 'Welcome to IFTU LMS! Login Email: barataa@iftu.edu.et | Temp Pass: ET-2025-9988. Portal: https://iftu.edu.et', date: new Date().toLocaleString() },
+      { id: 'SMS-884102', to: '+251 922 445 566', text: 'IFTU Alert: National Grade 12 Natural Science Exam Registration confirmation dispatched. Verified by MoE.', date: new Date().toLocaleString() }
+    ];
+
+    const headers = ['SMS ID', 'Recipient Phone', 'Message Payload', 'Dispatch Timestamp', 'Gateway Status'];
+    const rows = logsToExport.map(log => [
+      `"${(log.id || '').replace(/"/g, '""')}"`,
+      `"${(log.to || 'Broadcast/All Citizens').replace(/"/g, '""')}"`,
+      `"${(log.text || '').replace(/"/g, '""')}"`,
+      `"${(log.date || '').replace(/"/g, '""')}"`,
+      '"DELIVERED (GATEWAY_OK)"'
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `National_SMS_Log_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showNotification(`Exported ${logsToExport.length} SMS Log records to CSV file.`, 'success');
+  };
+
   const downloadCSV = (data: any[], filename: string) => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + Object.keys(data[0]).join(",") + "\n"
@@ -1935,9 +1970,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             
             <button 
               onClick={() => onNavClick('home')}
+              title={!isSidebarOpen ? "Logout of Command" : undefined}
               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group bg-red-600 text-white border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-none ${!isSidebarOpen && 'justify-center'}`}
             >
-              <X className="w-6 h-6 shrink-0" />
+              <LogOut className="w-6 h-6 shrink-0" />
               {isSidebarOpen && (
                 <span className="uppercase italic text-sm tracking-tight">Logout of Command</span>
               )}
@@ -2219,7 +2255,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             </div>
             
-            <div className="flex gap-4 w-full md:w-auto">
+            <div className="flex flex-wrap gap-4 w-full xl:w-auto justify-start md:justify-end">
               <button 
                 onClick={handleRunDiagnostics}
                 disabled={isDiagnosing}
@@ -2264,6 +2300,50 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="space-y-12 animate-fadeIn">
                 <div className="bg-white border-8 border-black rounded-[4rem] p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)]">
                   <h2 className="text-5xl font-black uppercase italic mb-8 border-b-8 border-black pb-6">System Operations Manual</h2>
+                  
+                  {/* Ibsa Waa'ee Applikeeshinii (Application Overview) */}
+                  <div className="mb-12 bg-emerald-900 text-white p-8 md:p-10 rounded-[3rem] border-8 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] space-y-6">
+                    <div className="border-b-4 border-emerald-600 pb-4">
+                      <span className="bg-yellow-400 text-black px-4 py-1.5 rounded-xl font-black uppercase text-xs tracking-widest italic border-2 border-black">
+                        📌 1. Ibsa Waa'ee Applikeeshinii (Application Overview)
+                      </span>
+                      <h3 className="text-3xl font-black uppercase italic tracking-tight text-white mt-3">
+                        IFTU LMS - National Digital Sovereign Education Portal
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-bold">
+                      <div className="bg-emerald-950 p-6 rounded-2xl border-2 border-emerald-500 space-y-2">
+                        <h4 className="text-yellow-400 font-black uppercase italic text-xs">National Digital Sovereign Education Portal</h4>
+                        <p className="text-emerald-100 text-xs italic leading-relaxed">
+                          IFTU LMS'n sirna barnootaa biyyooleessaa Itoophiyaa (Kutaa 9-12 Stream Natural Science, Social Science, fi TVET) haala ammayyaatiin qindaayeera.
+                        </p>
+                      </div>
+                      <div className="bg-emerald-950 p-6 rounded-2xl border-2 border-emerald-500 space-y-2">
+                        <h4 className="text-yellow-400 font-black uppercase italic text-xs">Exam Engine & Exam Architect</h4>
+                        <p className="text-emerald-100 text-xs italic leading-relaxed">
+                          Qormaata biyyooleessaa (EAES Exit Exam, Mock-EAES, Midterm, Quiz) qopheessuuf, qorachuuf fi sakatta'uuf gargaara.
+                        </p>
+                      </div>
+                      <div className="bg-emerald-950 p-6 rounded-2xl border-2 border-emerald-500 space-y-2">
+                        <h4 className="text-yellow-400 font-black uppercase italic text-xs">Safe Exam Browser (SEB) & Mobile QR</h4>
+                        <p className="text-emerald-100 text-xs italic leading-relaxed">
+                          Qormaata bilbilaa fi kompiutaraan haala nagaa ta'een qoruuf QR Code fi qajeelfama SEB qaba.
+                        </p>
+                      </div>
+                      <div className="bg-emerald-950 p-6 rounded-2xl border-2 border-emerald-500 space-y-2">
+                        <h4 className="text-yellow-400 font-black uppercase italic text-xs">Sovereign User Registry</h4>
+                        <p className="text-emerald-100 text-xs italic leading-relaxed">
+                          Galmee barattootaa fi barsiistotaa NID (National Digital ID), Sovereign Index, fi Gender waliin qaba.
+                        </p>
+                      </div>
+                      <div className="bg-emerald-950 p-6 rounded-2xl border-2 border-emerald-500 space-y-2 md:col-span-2">
+                        <h4 className="text-yellow-400 font-black uppercase italic text-xs">National SMS Gateway & Diagnostics Log</h4>
+                        <p className="text-emerald-100 text-xs italic leading-relaxed">
+                          Ergaa SMS fi credentials barattootaaf erguu akkasumas logii isaanii CSV'n fe'uuf tajaajila.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <div className="space-y-8">
@@ -2321,6 +2401,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <ArrowRight className="absolute bottom-4 right-4 w-12 h-12 text-blue-600/30 group-hover:text-blue-400 transition-all group-hover:scale-125" />
                           <h3 className="text-3xl font-black uppercase italic mb-6">Regional Commands</h3>
                           <div className="space-y-6 text-sm">
+                            <div className="border-l-4 border-amber-400 pl-4 py-1">
+                              <a 
+                                href="https://tmis.oeb.gov.et/" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="block space-y-1 group"
+                              >
+                                <p className="font-black text-amber-300 uppercase text-[10px] tracking-widest flex items-center gap-2">
+                                  <ExternalLink className="w-3.5 h-3.5 text-amber-300 group-hover:translate-x-1 transition-transform" />
+                                  Moosaajii Barsiisotaa (TMIS) 🔗
+                                </p>
+                                <p className="font-bold leading-snug text-gray-200">Oromia Education Bureau Teacher Information Management System (https://tmis.oeb.gov.et/)</p>
+                              </a>
+                            </div>
                             <button 
                               onClick={async () => {
                                 if (currentUser?.email?.includes('demo') || !auth.currentUser) {
@@ -4978,14 +5072,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Exams View */}
       {activeTab === 'exams' && (
         <div className="space-y-12 animate-fadeIn">
-          <div className="flex justify-between items-center">
-             <div className="flex items-center gap-4">
-               <h3 className="text-4xl font-black uppercase italic tracking-tighter text-blue-900">Exam Architect</h3>
-               <button onClick={handleDownloadSEBGuide} className="bg-rose-600 text-white px-6 py-2 rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center gap-2">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
+             <div className="flex flex-wrap items-center gap-3 md:gap-4">
+               <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-blue-900 shrink-0">Exam Architect</h3>
+               <button onClick={handleDownloadSEBGuide} className="bg-rose-600 text-white px-5 py-2.5 rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-2 shrink-0">
                   <FileDown size={14} /> Download SEB Guide
                </button>
                {exams.length > 0 && (
-                 <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                 <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] shrink-0">
                    <input 
                      type="checkbox" 
                      checked={selectedExams.length === exams.length}
@@ -4996,37 +5090,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  </label>
                )}
              </div>
-             <div className="flex items-center gap-4">
+             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                {selectedExams.length > 0 && (
                  <div className="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                   <span className="text-xs font-black uppercase mr-2">{selectedExams.length} Selected</span>
-                   <button onClick={handleBulkPublishExams} className="bg-blue-600 text-white px-4 py-2 rounded-xl border-2 border-black font-black uppercase text-[10px] hover:bg-blue-700">Publish</button>
-                   <button onClick={handleBulkDeleteExams} className="bg-rose-600 text-white px-4 py-2 rounded-xl border-2 border-black font-black uppercase text-[10px] hover:bg-rose-700">Delete</button>
+                   <span className="text-xs font-black uppercase mr-1">{selectedExams.length} Selected</span>
+                   <button onClick={handleBulkPublishExams} className="bg-blue-600 text-white px-3 py-1.5 rounded-xl border-2 border-black font-black uppercase text-[10px] hover:bg-blue-700">Publish</button>
+                   <button onClick={handleBulkDeleteExams} className="bg-rose-600 text-white px-3 py-1.5 rounded-xl border-2 border-black font-black uppercase text-[10px] hover:bg-rose-700">Delete</button>
                  </div>
                )}
-               <button onClick={() => setIsQuestionBankOpen(true)} className="bg-purple-600 text-white px-10 py-5 rounded-3xl border-8 border-black font-black uppercase text-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all">Question Bank</button>
-               <button onClick={() => { setExamForm(initialExamForm); setIsAddingExam(true); }} className="bg-green-600 text-white px-10 py-5 rounded-3xl border-8 border-black font-black uppercase text-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all">＋ Create New Exam</button>
+               <button onClick={() => setIsQuestionBankOpen(true)} className="bg-purple-600 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-2xl md:rounded-3xl border-4 md:border-8 border-black font-black uppercase text-xs md:text-sm shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all">Question Bank</button>
+               <button onClick={() => { setExamForm(initialExamForm); setIsAddingExam(true); }} className="bg-green-600 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-2xl md:rounded-3xl border-4 md:border-8 border-black font-black uppercase text-xs md:text-sm shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all">＋ Create New Exam</button>
              </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
             {exams.map(exam => (
-              <div key={exam.id} className={`bg-white border-8 border-black rounded-[3rem] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group overflow-hidden relative transition-all ${selectedExams.includes(exam.id) ? 'ring-4 ring-blue-500 ring-offset-4' : ''}`}>
+              <div key={exam.id} className={`bg-white border-4 md:border-8 border-black rounded-3xl md:rounded-[3rem] p-6 md:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group overflow-hidden relative transition-all min-w-0 w-full ${selectedExams.includes(exam.id) ? 'ring-4 ring-blue-500 ring-offset-4' : ''}`}>
                 <div className="absolute top-0 left-0 w-full h-2 ethiopian-gradient"></div>
-                <div className="absolute top-6 right-6 z-10">
+                <div className="absolute top-5 right-5 z-10">
                   <input 
                     type="checkbox" 
                     checked={selectedExams.includes(exam.id)}
                     onChange={() => handleSelectExam(exam.id)}
-                    className="w-6 h-6 border-2 border-black rounded-md accent-blue-600 cursor-pointer"
+                    className="w-5 h-5 md:w-6 md:h-6 border-2 border-black rounded-md accent-blue-600 cursor-pointer"
                   />
                 </div>
-                <div className="pr-8">
-                  <div className="flex justify-between items-start gap-2">
-                    <h4 className="text-2xl font-black uppercase italic leading-none">{exam.title}</h4>
+                <div className="pr-10">
+                  <div className="flex flex-wrap justify-between items-start gap-2">
+                    <h4 className="text-xl md:text-2xl font-black uppercase italic leading-tight flex-1 min-w-0 break-words">{exam.title}</h4>
                     <select 
                       value={exam.status} 
                       onChange={(e) => handleStatusChange(exam.id, e.target.value as 'draft' | 'published' | 'closed')}
-                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 border-black outline-none cursor-pointer transition-colors ${
+                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 border-black outline-none cursor-pointer transition-colors shrink-0 ${
                         exam.status === 'published' ? 'bg-green-400' : 
                         exam.status === 'closed' ? 'bg-rose-400' : 'bg-yellow-400'
                       }`}
@@ -5037,7 +5131,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </select>
                   </div>
                   <p className="text-[10px] font-bold text-blue-600 uppercase mt-2">{exam.subject} / {exam.grade} / {exam.academicYear}</p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 border-black bg-purple-400">
                       {exam.type?.toUpperCase()}
                     </span>
@@ -5060,27 +5154,27 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   )}
                 </div>
-                <div className="mt-8 pt-6 border-t-2 border-black flex justify-between items-center">
-                   <p className="text-xs font-black uppercase text-gray-400">{exam.questions.length} Questions</p>
-                   <div className="flex gap-3">
+                <div className="mt-6 pt-4 border-t-2 border-black flex flex-wrap justify-between items-center gap-3">
+                   <p className="text-xs font-black uppercase text-gray-400 shrink-0">{exam.questions.length} Questions</p>
+                   <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <button 
                         onClick={() => {
                           const examUrl = `${window.location.origin}?examId=${exam.id}`;
                           setQrContent({ title: exam.title, url: examUrl });
                           setIsQRModalOpen(true);
                         }}
-                        className="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg border-2 border-orange-400 font-black uppercase text-[10px] flex items-center gap-2"
+                        className="bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg border-2 border-orange-400 font-black uppercase text-[10px] flex items-center gap-1.5 hover:bg-orange-200 transition-colors"
                         title="Show QR for Mobile Exam Browser (ExamLock)"
                       >
-                        <QrCode size={14} /> Mobile QR
+                        <QrCode size={13} /> Mobile QR
                       </button>
-                      <button onClick={() => { setEditingExam(exam); setExamForm(exam); setIsAddingExam(true); }} className="bg-black text-white px-6 py-2 rounded-lg border-2 border-black font-black uppercase text-[10px]">Edit</button>
+                      <button onClick={() => { setEditingExam(exam); setExamForm(exam); setIsAddingExam(true); }} className="bg-black text-white px-4 py-1.5 rounded-lg border-2 border-black font-black uppercase text-[10px] hover:bg-gray-800 transition-colors">Edit</button>
                       <button onClick={() => {
                         if (onDeleteExam) {
                           onDeleteExam(exam.id);
                           setExams(exams.filter(e => e.id !== exam.id));
                         }
-                      }} className="text-rose-600 font-black uppercase text-[10px] p-2">🗑️</button>
+                      }} className="text-rose-600 hover:text-rose-800 font-black uppercase text-[10px] p-1.5 rounded border border-rose-200 hover:bg-rose-50 transition-colors" title="Delete Exam">🗑️</button>
                    </div>
                 </div>
               </div>
@@ -5092,13 +5186,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Assignments View */}
       {activeTab === 'assignments' && (
         <div className="space-y-12 animate-fadeIn">
-          <div className="flex justify-between items-center">
-             <h3 className="text-4xl font-black uppercase italic tracking-tighter text-blue-900">Assignment Architect</h3>
-             <button onClick={() => { setIsAssignmentModalOpen(true); setEditingAssignment(null); }} className="bg-green-600 text-white px-10 py-5 rounded-3xl border-8 border-black font-black uppercase text-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all">＋ Add New Assignment</button>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+             <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-blue-900">Assignment Architect</h3>
+             <button onClick={() => { setIsAssignmentModalOpen(true); setEditingAssignment(null); }} className="bg-green-600 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-2xl md:rounded-3xl border-4 md:border-8 border-black font-black uppercase text-xs md:text-sm shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all">＋ Add New Assignment</button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
             {assignments.map(assignment => (
-              <div key={assignment.id} className="bg-white border-8 border-black rounded-[3rem] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group overflow-hidden relative">
+              <div key={assignment.id} className="bg-white border-4 md:border-8 border-black rounded-3xl md:rounded-[3rem] p-6 md:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group overflow-hidden relative min-w-0 w-full">
                 <div className="absolute top-0 left-0 w-full h-2 ethiopian-gradient"></div>
                 <div>
                   <div className="flex justify-between items-start mb-2">
@@ -5176,6 +5270,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span className="text-[10px] font-bold text-gray-400">{item.date}</span>
                   </div>
                   <p className="text-xs font-bold text-gray-500 line-clamp-2 uppercase italic">{item.summary}</p>
+                  
+                  {/* Direct Social Media Broadcast */}
+                  <div className="pt-2 flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase text-gray-400">Direct Broadcast:</span>
+                    <button 
+                      onClick={() => {
+                        const text = `📢 ${item.title}\n\n${item.summary || ''}\n\nIFTU LMS National Portal:`;
+                        window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                      className="bg-[#229ED9] text-white px-3 py-1 rounded-lg border-2 border-black font-black uppercase text-[9px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5"
+                      title="Share bulletin to Telegram channel/group"
+                    >
+                      ✈️ Telegram
+                    </button>
+                    <button 
+                      onClick={() => {
+                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+                      }}
+                      className="bg-[#1877F2] text-white px-3 py-1 rounded-lg border-2 border-black font-black uppercase text-[9px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5"
+                      title="Share bulletin to Facebook page"
+                    >
+                      f Facebook
+                    </button>
+                  </div>
                 </div>
                 <div className="p-8 border-t-4 border-black flex justify-between gap-4">
                   {/* Fix: Handled news modal opening and deletion */}
@@ -5477,8 +5595,140 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                      Backup Registry
                      <Database className="w-5 h-5" />
                   </button>
+
+                  <button 
+                    onClick={handleExportSMSLogsCSV}
+                    className="w-full p-6 bg-emerald-600 text-white border-4 border-black rounded-2xl font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 active:shadow-none transition-all flex items-center justify-between"
+                  >
+                     Export SMS Log (CSV)
+                     <FileSpreadsheet className="w-5 h-5" />
+                  </button>
                </div>
             </div>
+          </div>
+
+          {/* National SMS Gateway & Simulated Logs */}
+          <div className="bg-white border-8 border-black rounded-[3.5rem] p-10 shadow-[20px_20px_0px_0px_rgba(234,179,8,1)] space-y-8 relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-2 bg-amber-500"></div>
+             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-4 border-black pb-6">
+                <div className="flex items-center gap-4">
+                   <div className="w-14 h-14 bg-amber-50 border-4 border-black rounded-2xl flex items-center justify-center text-amber-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <MessageSquare className="w-8 h-8" />
+                   </div>
+                   <div>
+                      <h4 className="text-3xl font-black uppercase italic">National SMS Gateway & Dispatch Logs</h4>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                         Simulated cellular credentials & system alerts audit trail
+                      </p>
+                   </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                   <button 
+                     onClick={handleExportSMSLogsCSV}
+                     className="bg-emerald-600 text-white px-6 py-3.5 rounded-2xl border-4 border-black font-black uppercase text-xs shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 active:shadow-none transition-all flex items-center gap-2"
+                     title="Export simulated SMS log to CSV file"
+                   >
+                      <FileSpreadsheet className="w-4 h-4" />
+                      Export SMS Log (CSV)
+                   </button>
+                   {smsLogs.length > 0 && onClearSMSLogs && (
+                      <button 
+                        onClick={() => {
+                          onClearSMSLogs();
+                          showNotification('Simulated SMS Log cleared.', 'info');
+                        }}
+                        className="bg-rose-100 text-rose-700 px-4 py-3.5 rounded-2xl border-4 border-black font-black uppercase text-xs hover:bg-rose-200 transition-all"
+                      >
+                         Clear Logs
+                      </button>
+                   )}
+                </div>
+             </div>
+
+             {/* Quick Dispatch Form */}
+             <div className="bg-amber-50/60 p-6 rounded-3xl border-4 border-black space-y-4">
+                <p className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                   <Zap className="w-4 h-4 text-amber-600" />
+                   Simulated SMS Dispatcher
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   <input 
+                     type="text" 
+                     placeholder="Recipient Mobile (+251...)" 
+                     value={smsPhone}
+                     onChange={(e) => setSmsPhone(e.target.value)}
+                     className="p-3.5 border-4 border-black rounded-xl font-bold text-sm bg-white outline-none focus:bg-amber-50 transition-all"
+                   />
+                   <input 
+                     type="text" 
+                     placeholder="SMS Payload Message..." 
+                     value={smsText}
+                     onChange={(e) => setSmsText(e.target.value)}
+                     className="p-3.5 border-4 border-black rounded-xl font-bold text-sm bg-white outline-none focus:bg-amber-50 transition-all md:col-span-1"
+                   />
+                   <button 
+                     onClick={() => {
+                       if (!smsText.trim()) {
+                         showNotification("Please enter SMS message text", "error");
+                         return;
+                       }
+                       if (onSendSMS) {
+                         onSendSMS(smsPhone.trim() || '+251 900 000 000', smsText.trim());
+                         showNotification(`SMS dispatched to ${smsPhone || 'Broadcast'}`, 'success');
+                         setSmsText('');
+                         setSmsPhone('');
+                       }
+                     }}
+                     className="bg-black text-white px-6 py-3.5 rounded-xl border-4 border-black font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(234,179,8,1)] hover:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                   >
+                      <Send className="w-4 h-4" />
+                      Send Simulated SMS
+                   </button>
+                </div>
+             </div>
+
+             {/* Logs List */}
+             <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                   <p className="text-xs font-black uppercase tracking-widest text-gray-500">
+                      Dispatched Log Entries ({smsLogs.length})
+                   </p>
+                   {smsLogs.length > 0 && (
+                      <span className="text-[10px] font-black uppercase px-3 py-1 bg-green-100 border-2 border-black rounded-full text-green-800">
+                         ● Gateway Active
+                      </span>
+                   )}
+                </div>
+
+                {smsLogs.length === 0 ? (
+                   <div className="bg-gray-50 p-8 rounded-3xl border-4 border-dashed border-gray-300 text-center space-y-3">
+                      <MessageSquare className="w-10 h-10 text-gray-400 mx-auto" />
+                      <p className="font-black italic text-gray-500 text-sm">No SMS messages dispatched in this session yet.</p>
+                      <p className="text-xs text-gray-400">Use the form above or generate user credentials to simulate SMS dispatches, or click <span className="font-bold underline text-black cursor-pointer" onClick={handleExportSMSLogsCSV}>Export CSV</span> to download the sample log schema.</p>
+                   </div>
+                ) : (
+                   <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
+                      {smsLogs.map((log) => (
+                         <div key={log.id} className="bg-white p-5 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row justify-between md:items-center gap-3 hover:bg-amber-50/20 transition-all">
+                            <div className="space-y-1 flex-1">
+                               <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black uppercase bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-black">
+                                     {log.to || 'Broadcast'}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-gray-400">{log.date}</span>
+                               </div>
+                               <p className="font-bold text-sm text-gray-900 break-words">{log.text}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                               <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-300">
+                                  DELIVERED
+                               </span>
+                            </div>
+                         </div>
+                      ))}
+                   </div>
+                )}
+             </div>
           </div>
 
           <div className="bg-white border-8 border-black rounded-[4rem] p-12 shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
