@@ -10,6 +10,7 @@ import LiveInterviewer from './LiveInterviewer';
 import CertificatePortal from './CertificatePortal';
 import VideoPlayer from './VideoPlayer';
 import LessonCheckpoint from './LessonCheckpoint';
+import { jsPDF } from 'jspdf';
 
 const SovereignSkeleton: React.FC<{ className?: string }> = ({ className = "" }) => (
   <div className={`animate-pulse bg-gray-200 border-4 border-black/5 rounded-2xl ${className}`}>
@@ -345,6 +346,82 @@ const CourseViewer: React.FC<CourseViewerProps> = ({
     }
   };
 
+  const handleDownloadSyllabus = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(0, 0, 0);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("IFTU NATIONAL SOVEREIGN LMS", pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text(`SYLLABUS: ${course.title.toUpperCase()}`, pageWidth / 2, 32, { align: 'center' });
+
+    // Course Meta
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Course Code: ${course.code}`, 20, 50);
+    doc.text(`Subject: ${course.subject}`, 20, 55);
+    doc.text(`Grade: ${course.grade}`, 20, 60);
+    doc.text(`Instructor: ${course.instructor}`, pageWidth - 80, 50);
+    
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(1);
+    doc.line(20, 65, pageWidth - 20, 65);
+
+    // Syllabus Content
+    let y = 80;
+    doc.setFontSize(16);
+    doc.text("Official Course Syllabus", 20, y);
+    y += 10;
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    const syllabusText = course.syllabus || "No detailed syllabus content provided for this module.";
+    const lines = doc.splitTextToSize(syllabusText, pageWidth - 40);
+    
+    lines.forEach((line: string) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, 20, y);
+      y += 7;
+    });
+
+    // Learning Objectives
+    if (course.learningObjectives && course.learningObjectives.length > 0) {
+      y += 10;
+      if (y > 260) { doc.addPage(); y = 20; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("Learning Objectives", 20, y);
+      y += 8;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      course.learningObjectives.forEach((obj, idx) => {
+        if (y > 280) { doc.addPage(); y = 20; }
+        doc.text(`${idx + 1}. ${obj}`, 25, y);
+        y += 6;
+      });
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`IFTU Registry Verification | Page ${i} of ${pageCount} | Hash: ${btoa(course.id).slice(0, 12)}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+    }
+
+    doc.save(`${course.code}_Syllabus.pdf`);
+  };
+
   const handleDeepDive = async (type: 'simpler' | 'advanced') => {
     if (!activeLesson || isDeepDiving) return;
     setIsDeepDiving(true);
@@ -389,6 +466,14 @@ const CourseViewer: React.FC<CourseViewerProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-6">
+          <button 
+            onClick={handleDownloadSyllabus}
+            className="hidden md:flex items-center gap-3 bg-purple-600 text-white border-4 border-black px-6 py-3 rounded-2xl font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all"
+            title="Download Course Syllabus"
+          >
+            <Download className="w-5 h-5" />
+            <span>Syllabus</span>
+          </button>
           <div className="hidden md:flex items-center gap-6">
             <div className="w-16 h-16 bg-rose-600 text-white rounded-2xl border-4 border-black flex items-center justify-center text-2xl">🔒</div>
           </div>

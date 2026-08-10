@@ -1178,6 +1178,83 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setExamWizardStep(1);
   };
 
+  const handleDownloadSyllabus = (course: Course) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(0, 0, 0);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("IFTU NATIONAL SOVEREIGN LMS", pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text(`SYLLABUS: ${course.title.toUpperCase()}`, pageWidth / 2, 32, { align: 'center' });
+
+    // Course Meta
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Course Code: ${course.code}`, 20, 50);
+    doc.text(`Subject: ${course.subject}`, 20, 55);
+    doc.text(`Grade: ${course.grade}`, 20, 60);
+    doc.text(`Instructor: ${course.instructor}`, pageWidth - 80, 50);
+    
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(1);
+    doc.line(20, 65, pageWidth - 20, 65);
+
+    // Syllabus Content
+    let y = 80;
+    doc.setFontSize(16);
+    doc.text("Official Course Syllabus", 20, y);
+    y += 10;
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    const syllabusText = course.syllabus || "No detailed syllabus content provided for this module.";
+    const lines = doc.splitTextToSize(syllabusText, pageWidth - 40);
+    
+    lines.forEach((line: string) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, 20, y);
+      y += 7;
+    });
+
+    // Learning Objectives
+    if (course.learningObjectives && course.learningObjectives.length > 0) {
+      y += 10;
+      if (y > 260) { doc.addPage(); y = 20; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("Learning Objectives", 20, y);
+      y += 8;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      course.learningObjectives.forEach((obj, idx) => {
+        if (y > 280) { doc.addPage(); y = 20; }
+        doc.text(`${idx + 1}. ${obj}`, 25, y);
+        y += 6;
+      });
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`IFTU Registry Verification | Page ${i} of ${pageCount} | Hash: ${btoa(course.id).slice(0, 12)}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+    }
+
+    doc.save(`${course.code}_Syllabus.pdf`);
+    showNotification("Course Syllabus downloaded successfully.", "success");
+  };
+
   const handleSelectExam = (examId: string) => {
     setSelectedExams(prev => 
       prev.includes(examId) ? prev.filter(id => id !== examId) : [...prev, examId]
@@ -5003,6 +5080,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </button>
                       {/* Fix: setCourseForm and editingCourse handled */}
                       <button onClick={() => { setEditingCourse(course); setCourseForm(course); setCourseWizardStep(1); setIsAddingCourse(true); }} className="bg-black text-white px-6 py-2 rounded-lg border-2 border-black font-black uppercase text-[10px]">Edit Course</button>
+                      <button 
+                        onClick={() => handleDownloadSyllabus(course)}
+                        className="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg border-2 border-purple-400 font-black uppercase text-[10px] flex items-center gap-2 hover:bg-purple-200 transition-colors"
+                      >
+                        <Download size={12} /> Syllabus
+                      </button>
                       <button onClick={() => handleDeleteCourse(course.id)} className="text-rose-600 font-black uppercase text-[10px] p-2">🗑️</button>
                    </div>
                 </div>
