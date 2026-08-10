@@ -19,7 +19,6 @@ import {
 } from 'recharts';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
-import { QrReader } from 'react-qr-reader';
 import RedemptionShop from './RedemptionShop';
 import ProgressPath from './ProgressPath';
 import I2LMSLogo from './I2LMSLogo';
@@ -1095,20 +1094,9 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
                         <div className="relative aspect-video w-full bg-gray-900 border-4 border-white rounded-3xl overflow-hidden flex items-center justify-center">
                           {isCameraActive ? (
                             <>
-                              <div className="w-full h-full relative">
-                                <QrReader
-                                  onResult={(result, error) => {
-                                    if (result) {
-                                      handleScanSuccess(result.getText());
-                                    }
-                                  }}
-                                  constraints={{ facingMode: 'environment' }}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
                               <video 
                                 ref={videoRef} 
-                                className="hidden" 
+                                className="w-full h-full object-cover rounded-2xl" 
                                 playsInline 
                                 muted 
                               />
