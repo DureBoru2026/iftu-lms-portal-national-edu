@@ -124,6 +124,7 @@ export interface News {
   summary: string;
   content: string;
   image: string;
+  video?: string;
   category?: string;
 }
 

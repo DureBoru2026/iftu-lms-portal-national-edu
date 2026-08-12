@@ -1420,7 +1420,7 @@ const App: React.FC = () => {
               await dbService.deleteCourse(id);
             }} 
             onAddNews={async (n) => {
-              setNews([n, ...news]);
+              setNews(prev => [n, ...prev]);
               await dbService.syncNews(n);
               // Notify all students
               const students = users.filter(u => u.role === 'student');
@@ -1429,18 +1429,18 @@ const App: React.FC = () => {
                   userId: student.id,
                   title: 'New Bulletin Published',
                   message: n.title,
-                  type: 'assignment', // Using assignment type as a generic for now, or I should add 'news'
+                  type: 'info',
                   isRead: false,
                   createdAt: new Date().toISOString()
                 });
               }
             }}
             onUpdateNews={async (n) => {
-              setNews(news.map(bulletin => bulletin.id === n.id ? n : bulletin));
+              setNews(prev => prev.map(bulletin => bulletin.id === n.id ? n : bulletin));
               await dbService.syncNews(n);
             }}
             onDeleteNews={async (id) => {
-              setNews(news.filter(n => n.id !== id));
+              setNews(prev => prev.filter(n => n.id !== id));
               await dbService.deleteNews(id);
             }}
             onAddAssignment={async (a) => {

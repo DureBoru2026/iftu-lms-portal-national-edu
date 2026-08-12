@@ -30,6 +30,25 @@ export const VideoGenerator: React.FC = () => {
 
   const [mode, setMode] = useState<'ai' | 'registry'>('ai');
   const [uploadUrl, setUploadUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setError('');
+    try {
+      const url = await dbService.uploadFile('videos/registry', file);
+      setUploadUrl(url);
+      setVideoMeta(prev => ({ ...prev, title: prev.title || file.name.split('.')[0] }));
+      setStatus('File uploaded and staged for ingestion.');
+    } catch (err: any) {
+      setError('Upload failed: ' + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSaveToLibrary = async () => {
     const finalUrl = mode === 'ai' ? videoUrl : uploadUrl;
@@ -152,7 +171,12 @@ export const VideoGenerator: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Generation node failure.');
+      const msg = err.message || String(err);
+      if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) {
+        setError('National Quota Reached: The AI synthesis engine is at peak capacity. Please switch to "Registry Upload" for immediate asset ingestion or try again later.');
+      } else {
+        setError(msg || 'Generation node failure.');
+      }
       setStatus('');
     } finally {
       setIsGenerating(false);
@@ -219,15 +243,22 @@ export const VideoGenerator: React.FC = () => {
                 <div className="text-6xl">📥</div>
                 <div className="space-y-2">
                   <h4 className="text-2xl font-black uppercase italic">Binary Payload Detection</h4>
-                  <p className="text-sm font-bold text-amber-900/60">Input the direct binary URL or IPFS manifest for the asset.</p>
+                  <p className="text-sm font-bold text-amber-900/60">Upload from local device or input direct URL.</p>
                 </div>
-                <input 
-                  type="text"
-                  placeholder="https://content.national.edu/vids/physics_01.mp4"
-                  className="w-full p-6 border-4 border-black rounded-2xl font-black outline-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                  value={uploadUrl}
-                  onChange={e => setUploadUrl(e.target.value)}
-                />
+                <div className="flex gap-4">
+                  <input 
+                    type="text"
+                    placeholder="https://content.national.edu/vids/physics_01.mp4"
+                    className="flex-1 p-6 border-4 border-black rounded-2xl font-black outline-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                    value={uploadUrl}
+                    onChange={e => setUploadUrl(e.target.value)}
+                    disabled={isUploading}
+                  />
+                  <label className={`bg-black text-white px-8 flex items-center justify-center rounded-2xl border-4 border-black cursor-pointer hover:bg-gray-800 transition-colors shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${isUploading ? 'opacity-50' : ''}`}>
+                    {isUploading ? <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div> : '📁'}
+                    <input type="file" className="hidden" accept="video/*" onChange={handleFileUpload} disabled={isUploading} />
+                  </label>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

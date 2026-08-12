@@ -441,7 +441,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   useEffect(() => { if (initialExams?.length) setExams(initialExams); }, [initialExams]);
   useEffect(() => { if (initialAssignments?.length) setAssignments(initialAssignments); }, [initialAssignments]);
   useEffect(() => { if (initialSubmissions?.length) setSubmissions(initialSubmissions); }, [initialSubmissions]);
-  useEffect(() => { if (initialNews?.length) setNews(initialNews); }, [initialNews]);
+  useEffect(() => { setNews(initialNews); }, [initialNews]);
   useEffect(() => { if (initialResults?.length) setExamResults(initialResults); }, [initialResults]);
 
   useEffect(() => {
@@ -883,6 +883,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
   const [isUploadingPic, setIsUploadingPic] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Curriculum CRUD State
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -1512,7 +1514,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Fix: Added missing initial news form
   const initialNewsForm: Partial<News> = {
-    title: '', summary: '', content: '', tag: '', image: '', date: new Date().toLocaleDateString()
+    title: '', summary: '', content: '', tag: '', image: '', video: '', date: new Date().toLocaleDateString()
   };
 
   const [userForm, setUserForm] = useState<Partial<User>>(initialUserForm);
@@ -1982,6 +1984,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // NEWS CRUD LOGIC
+  const handleNewsFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingMedia(true);
+    setUploadProgress(10); // Start progress
+    
+    try {
+      const path = type === 'image' ? 'news/images' : 'news/videos';
+      const url = await dbService.uploadFile(path, file);
+      
+      if (type === 'image') {
+        setNewsForm({ ...newsForm, image: url });
+      } else {
+        setNewsForm({ ...newsForm, video: url });
+      }
+      
+      setUploadProgress(100);
+      showNotification(`${type === 'image' ? 'Image' : 'Video'} uploaded successfully!`, 'success');
+    } catch (error) {
+      console.error("News Media Upload Error:", error);
+      showNotification(`Failed to upload ${type}.`, 'error');
+    } finally {
+      setIsUploadingMedia(false);
+      setTimeout(() => setUploadProgress(0), 2000);
+    }
+  };
+
   const handleCommitNews = () => {
     if (!newsForm.title || !newsForm.summary) {
       showNotification("Validation Error: Title and Summary are mandatory for bulletins.", 'error');
@@ -5038,10 +5068,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div className="space-y-6">
-                  <h4 className="text-xl font-black uppercase italic border-l-8 border-blue-600 pl-4">Media</h4>
+                  <h4 className="text-xl font-black uppercase italic border-l-8 border-blue-600 pl-4">Media Hub</h4>
+                  
+                  {/* Image Sector */}
                   <div className="space-y-4">
                     <div className="flex justify-between items-end">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Image URL</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Bulletin Image (URL or Local)</label>
                       <button 
                         onClick={() => handleGenerateAIImage('news')} 
                         disabled={isGeneratingImage || !newsForm.title}
@@ -5051,13 +5083,51 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         Manifest with AI
                       </button>
                     </div>
-                    <input className="w-full p-6 border-4 border-black rounded-2xl font-black text-lg outline-none" value={newsForm.image || ''} onChange={e => setNewsForm({...newsForm, image: e.target.value})} />
+                    <div className="flex gap-4">
+                      <input className="flex-1 p-6 border-4 border-black rounded-2xl font-black text-lg outline-none" placeholder="Image URL" value={newsForm.image || ''} onChange={e => setNewsForm({...newsForm, image: e.target.value})} />
+                      <label className="bg-black text-white px-6 flex items-center justify-center rounded-2xl border-4 border-black cursor-pointer hover:bg-gray-800 transition-colors">
+                        <Plus className="w-6 h-6" />
+                        <input type="file" className="hidden" accept="image/*" onChange={e => handleNewsFileUpload(e, 'image')} />
+                      </label>
+                    </div>
                   </div>
-                  {newsForm.image && (
-                    <div className="mt-4 border-4 border-black rounded-2xl overflow-hidden h-32 w-full bg-gray-100">
-                      <img src={newsForm.image} alt="News Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+
+                  {/* Video Sector */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Bulletin Video (Local Ingestion)</label>
+                    <div className="flex gap-4">
+                      <input className="flex-1 p-6 border-4 border-black rounded-2xl font-black text-lg outline-none" placeholder="Video URL (optional)" value={newsForm.video || ''} onChange={e => setNewsForm({...newsForm, video: e.target.value})} />
+                      <label className="bg-blue-600 text-white px-6 flex items-center justify-center rounded-2xl border-4 border-black cursor-pointer hover:bg-blue-700 transition-colors">
+                        <Video className="w-6 h-6" />
+                        <input type="file" className="hidden" accept="video/*" onChange={e => handleNewsFileUpload(e, 'video')} />
+                      </label>
+                    </div>
+                  </div>
+
+                  {isUploadingMedia && (
+                    <div className="bg-gray-100 h-4 rounded-full border-2 border-black overflow-hidden">
+                      <div className="bg-blue-600 h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
                     </div>
                   )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {newsForm.image && (
+                      <div className="border-4 border-black rounded-2xl overflow-hidden aspect-video bg-gray-100 relative group">
+                        <img src={newsForm.image} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <button onClick={() => setNewsForm({...newsForm, image: ''})} className="bg-white p-2 rounded-full border-2 border-black">🗑️</button>
+                        </div>
+                      </div>
+                    )}
+                    {newsForm.video && (
+                      <div className="border-4 border-black rounded-2xl overflow-hidden aspect-video bg-black relative group">
+                        <video src={newsForm.video} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <button onClick={() => setNewsForm({...newsForm, video: ''})} className="bg-white p-2 rounded-full border-2 border-black">🗑️</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -5455,6 +5525,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div key={item.id} className="bg-white border-8 border-black rounded-[4rem] overflow-hidden shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] flex flex-col group">
                 <div className="h-48 border-b-8 border-black relative">
                   <img src={item.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                  {item.video && (
+                    <div className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <Video size={20} />
+                    </div>
+                  )}
                 </div>
                 <div className="p-8 space-y-4 flex-1">
                   <div className="flex justify-between items-start">

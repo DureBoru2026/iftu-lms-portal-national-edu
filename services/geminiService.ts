@@ -57,7 +57,16 @@ export const askTutor = async (
     });
     return response.text;
   } catch (error: any) {
-    console.warn("Gemini Live Service Note:", error?.message || error);
+    const errorMsg = error?.message || String(error);
+    if (errorMsg.includes('429') || errorMsg.includes('RESOURCE_EXHAUSTED') || errorMsg.includes('quota')) {
+      return `[SYSTEM NOTE: National Intelligence Quota Reached] 
+      
+      I am currently at maximum capacity for real-time processing. However, as your official tutor, I am still here to help! 
+      
+      Please try again in a few minutes, or ask a simpler question. In the meantime, you can review your existing course materials and previous lesson summaries.`;
+    }
+
+    console.warn("Gemini Live Service Note:", errorMsg);
     
     // Provide an intelligent, contextual fallback answer when API key or connection is pending
     const qLower = question.toLowerCase();

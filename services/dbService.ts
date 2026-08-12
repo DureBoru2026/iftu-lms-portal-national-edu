@@ -410,6 +410,23 @@ export const dbService = {
     }
   },
 
+  // UPLOAD FILE
+  async uploadFile(path: string, file: File): Promise<string> {
+    const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    const { storage } = await import('../firebase');
+    
+    const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
+    
+    try {
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
+    } catch (error) {
+      console.error("Storage Upload Error:", error);
+      throw error;
+    }
+  },
+
   // UPLOAD SUBMISSION FILE
   async uploadSubmissionFile(assignmentId: string, studentId: string, file: File): Promise<string> {
     const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
