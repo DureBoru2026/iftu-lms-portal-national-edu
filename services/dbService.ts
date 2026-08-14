@@ -1174,14 +1174,25 @@ export const dbService = {
       // Fallback if Gemini fails or returns empty
       const nationalFeed: News[] = [
         {
-          id: 'news_nat_001',
-          title: 'Ministry Launches Sovereign Digital Infrastructure',
-          summary: 'The Ministry of Education has inaugurated a new high-speed server cluster dedicated to the National Sovereign Education Network.',
-          content: 'This infrastructure will power region-specific learning modules and secure student registries across the country.',
+          id: 'news_sovereign_001',
+          title: 'IFTU National Dashboard: Official Release',
+          summary: 'The new secondary and TVET management dashboard is now live across the Sovereign Education Network.',
+          content: 'Baga Nagaa Gara Applikeeshinii IFTU LMS dhuftan. Mana barumsa IFTU LMS kanatti barnootaa sadarkaa lammaffaa ykn kutaa 9-12 fi TVET gulantaa tokko hanga arfaffaa gosoota barnootaa itiyoophiyaatiin isiniif qophaa\'e. Dashboard kun tajaajila barnootaa hunda walitti fiduuf qophaa\'e.',
           category: 'announcement',
-          tag: 'SOVEREIGN',
+          tag: 'SYSTEM',
           date: new Date().toISOString().split('T')[0],
           image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+          id: 'news_video_guide_001',
+          title: 'Portal Navigation Protocol: Video Guide',
+          summary: 'Watch the official video guide on how to navigate the IFTU LMS Sovereign Registry.',
+          content: 'Eeyyee! Dashboard kanaaf sagalee dubbisaa (voice narration) ni danda\'ama. Video kana keessatti akkamitti faayila download gochuu dandeessan, akkamitti qorumsa fudhattan fi dhimmoota biroo barachuu dandeessu.',
+          category: 'guide',
+          tag: 'VIDEO',
+          date: new Date().toISOString().split('T')[0],
+          image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
+          video: '/assets/news/guide_video.mp4'
         }
       ];
 

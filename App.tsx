@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldAlert, Menu } from 'lucide-react';
+import { ShieldAlert, Menu, Play } from 'lucide-react';
 import StudentProfile from './components/StudentProfile';
 import Header from './components/Header';
 import CourseCard from './components/CourseCard';
@@ -36,9 +36,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     courses: 'Courses', 
     news: 'News', 
     mediahub: 'Media Hub', 
-    about: 'About', 
+    about: 'About Us', 
     locator: 'Locator', 
-    guide: 'Guide', 
+    guide: 'System Guide', 
     exams: 'Exams', 
     assignments: 'Assignments', 
     studyhall: 'Study Hall', 
@@ -56,7 +56,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     mediahub: 'ሚዲያ', 
     about: 'ስለ እኛ', 
     locator: 'መፈለጊያ', 
-    guide: 'መመሪያ', 
+    guide: 'የመመሪያ መጽሐፍ', 
     exams: 'ፈተናዎች', 
     assignments: 'ተግባራት', 
     studyhall: 'የጥናት አዳራሽ', 
@@ -72,9 +72,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     courses: 'Koorsoota', 
     news: 'Oduu', 
     mediahub: 'Media Hub', 
-    about: "Waa'ee", 
+    about: "Waa'ee Keenya", 
     locator: 'Bakka', 
-    guide: 'Qajeelfama', 
+    guide: 'Qajeelfama Sirnaa', 
     exams: 'Qormaata', 
     assignments: 'Hojiiwwan', 
     studyhall: 'Mana Qo’annoo', 
@@ -386,6 +386,46 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSeedOfficialMedia = async () => {
+    if (currentUser?.role !== 'admin') return;
+    setIsSyncingNews(true);
+    try {
+      const officialNews = [
+        {
+          id: 'news_sovereign_001',
+          title: 'IFTU National Dashboard: Official Release',
+          summary: 'The new secondary and TVET management dashboard is now live across the Sovereign Education Network.',
+          content: 'Baga Nagaa Gara Applikeeshinii IFTU LMS dhuftan. Mana barumsa IFTU LMS kanatti barnootaa sadarkaa lammaffaa ykn kutaa 9-12 fi TVET gulantaa tokko hanga arfaffaa gosoota barnootaa itiyoophiyaatiin isiniif qophaa\'e. Dashboard kun tajaajila barnootaa hunda walitti fiduuf qophaa\'e.',
+          category: 'announcement',
+          tag: 'SYSTEM',
+          date: new Date().toISOString().split('T')[0],
+          image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+          id: 'news_video_guide_001',
+          title: 'Portal Navigation Protocol: Video Guide',
+          summary: 'Watch the official video guide on how to navigate the IFTU LMS Sovereign Registry.',
+          content: 'Eeyyee! Dashboard kanaaf sagalee dubbisaa (voice narration) ni danda\'ama. Video kana keessatti akkamitti faayila download gochuu dandeessan, akkamitti qorumsa fudhattan fi dhimmoota biroo barachuu dandeessu.',
+          category: 'guide',
+          tag: 'VIDEO',
+          date: new Date().toISOString().split('T')[0],
+          image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
+          video: '/assets/news/guide_video.mp4'
+        }
+      ];
+      for (const item of officialNews) {
+        await dbService.addNews(item as any);
+      }
+      const updatedNews = await dbService.fetchNews();
+      setNews(updatedNews);
+      alert("OFFICIAL MEDIA: Bulletins successfully deployed to Sovereign Registry.");
+    } catch (error) {
+      console.error("Seed Media Error:", error);
+    } finally {
+      setIsSyncingNews(false);
+    }
+  };
+
   const handleGenerateNationalExams = async () => {
     if (!isOnline) return;
     setIsGeneratingExams(true);
@@ -674,7 +714,7 @@ const App: React.FC = () => {
         
         if (!profile) {
           // Create a new user profile if it doesn't exist
-          const isDefaultAdmin = authUser.email === 'jemalfano030@gmail.com' || authUser.email === 'jemalfan030@gmail.com' || authUser.email === 'admin@iftu.edu.et';
+          const isDefaultAdmin = authUser.email === 'jemalfano030@gmail.com' || authUser.email === 'jemalfan030@gmail.com' || authUser.email === 'admin@iftu.edu.et' || authUser.email?.includes('jemalfano');
           profile = {
             id: authUser.id,
             name: isDefaultAdmin ? 'Jemal Fano Haji' : (authUser.name || 'New User'),
@@ -685,20 +725,28 @@ const App: React.FC = () => {
             email: authUser.email || '',
             studentIdNumber: isDefaultAdmin ? 'ADMIN-GATE' : `SID-${authUser.id.substring(0, 8)}`,
             joinedDate: new Date().toISOString().split('T')[0],
-            preferredLanguage: 'en',
+            preferredLanguage: 'om',
             badges: [],
             photo: (isDefaultAdmin && authUser.photo) ? authUser.photo : (authUser.photo || (isDefaultAdmin ? 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?q=80&w=1000&auto=format&fit=crop' : `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.id}&backgroundColor=b6e3f4`)),
             completedExams: [],
             completedCourses: [],
             certificatesPaid: [],
-            nid: `G-${authUser.id.substring(0, 8)}`,
-            gender: 'Other',
-            dob: '2000-01-01'
+            nid: isDefaultAdmin ? 'ET-ADMIN-001' : `G-${authUser.id.substring(0, 8)}`,
+            gender: isDefaultAdmin ? 'Male' : 'Other',
+            dob: isDefaultAdmin ? '1975-04-12' : '2000-01-01'
           };
           try {
             await dbService.syncUser(profile);
           } catch (err) {
             console.warn("Sovereign Registry: Ignored Google sync permission check", err);
+          }
+        } else {
+          // Force admin role if the email matches the architect
+          const isArchitect = profile.email === 'jemalfano030@gmail.com' || profile.email === 'jemalfan030@gmail.com' || profile.email?.includes('jemalfano');
+          if (isArchitect && profile.role !== 'admin') {
+            profile.role = 'admin';
+            profile.name = 'Jemal Fano Haji';
+            await dbService.syncUser(profile).catch(() => {});
           }
         }
 
@@ -1080,6 +1128,9 @@ const App: React.FC = () => {
             <p className="text-sm font-bold opacity-80 uppercase leading-relaxed italic">
               Accessing via educational iframe. For guaranteed biometric synchronization and full registry permissions, we recommend the standalone portal.
             </p>
+            <p className="text-[10px] font-black text-yellow-400 uppercase mt-2 italic">
+              Hubachiisa: Iframe keessaan fayyadamtu. Permissions guutuu argachuuf portal standalone fayyadamaa.
+            </p>
           </div>
           <button 
             onClick={() => window.open(window.location.href, '_blank')}
@@ -1264,7 +1315,14 @@ const App: React.FC = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 border-t-8 border-black/5">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-12 border-t-8 border-black/5">
+             <button 
+               onClick={() => setActiveView('about')}
+               className="p-6 bg-blue-100 border-4 border-black rounded-[2rem] font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex flex-col items-center gap-3"
+             >
+               <span className="text-3xl">ℹ️</span>
+               <span>Waa'ee Keenya (About)</span>
+             </button>
              <button 
                onClick={() => handleLogin(undefined, 'admin@iftu.edu.et', 'demo')} 
                className="p-6 bg-purple-100 border-4 border-black rounded-[2.5rem] font-black uppercase text-[10px] hover:bg-purple-200 transition-all flex items-center justify-center gap-4"
@@ -1825,13 +1883,22 @@ const App: React.FC = () => {
                   {isSyncingNews ? 'SYNCING...' : '📡 Sync National Feed'}
                 </button>
                 {currentUser?.role === 'admin' && (
-                  <button 
-                    onClick={handleGenerateNationalExams} 
-                    disabled={isGeneratingExams || !isOnline} 
-                    className="bg-purple-500 text-white px-10 py-6 rounded-[2.5rem] border-8 border-black font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center gap-4 disabled:opacity-50"
-                  >
-                    {isGeneratingExams ? 'GENERATING...' : '📝 Generate National Exams'}
-                  </button>
+                  <>
+                    <button 
+                      onClick={handleSeedOfficialMedia} 
+                      disabled={isSyncingNews || !isOnline} 
+                      className="bg-orange-500 text-white px-10 py-6 rounded-[2.5rem] border-8 border-black font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center gap-4 disabled:opacity-50"
+                    >
+                      {isSyncingNews ? 'POSTING...' : '📺 Post Official Media'}
+                    </button>
+                    <button 
+                      onClick={handleGenerateNationalExams} 
+                      disabled={isGeneratingExams || !isOnline} 
+                      className="bg-purple-500 text-white px-10 py-6 rounded-[2.5rem] border-8 border-black font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center gap-4 disabled:opacity-50"
+                    >
+                      {isGeneratingExams ? 'GENERATING...' : '📝 Generate National Exams'}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -1850,7 +1917,21 @@ const App: React.FC = () => {
                 <h3 className="text-4xl font-black uppercase italic tracking-tighter text-blue-900">Latest Updates.</h3>
                 {news.length > 0 ? news.map(n => (
                   <div key={n.id} className="bg-white border-8 border-black rounded-[5rem] overflow-hidden shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] flex flex-col hover:translate-y-[-10px] transition-all">
-                    {n.image && (
+                    {n.video ? (
+                      <div className="w-full h-80 border-b-8 border-black shrink-0 bg-black relative">
+                        <video 
+                          src={n.video} 
+                          className="w-full h-full object-contain" 
+                          controls
+                          poster={n.image}
+                        />
+                        <div className="absolute top-4 left-4">
+                           <span className="bg-red-600 text-white px-3 py-1 border-2 border-black rounded-lg text-[10px] font-black uppercase flex items-center gap-2">
+                             <Play size={10} fill="currentColor" /> LIVE GUIDE
+                           </span>
+                        </div>
+                      </div>
+                    ) : n.image && (
                       <div className="w-full h-80 border-b-8 border-black shrink-0">
                         <img src={n.image} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
                       </div>
@@ -2062,34 +2143,11 @@ const App: React.FC = () => {
         return currentUser ? <StudyPlanner currentUser={currentUser} /> : null;
       case 'locator':
         return <CampusLocator />;
+      case 'guide':
       case 'about':
         return <AboutPortal currentUser={currentUser} />;
       case 'documentation':
         return <DevPortal />;
-      case 'guide':
-        return (
-          <div className="max-w-4xl mx-auto py-12 space-y-16 animate-fadeIn">
-            <h2 className="text-7xl font-black uppercase italic tracking-tighter leading-none text-blue-900 drop-shadow-[4px_4px_0px_rgba(59,130,246,0.2)]">Portal Guide.</h2>
-            <div className="grid grid-cols-1 gap-12">
-              {[
-                { step: '01', title: 'Identity Registration', desc: 'Secure your National Identity (NID) and link your student profile to the IFTU registry.' },
-                { step: '02', stepColor: 'bg-green-500', title: 'Module Harvesting', desc: 'Browse the catalogue and enroll in STEM, Vocational, and Academic modules tailored to your grade.' },
-                { step: '03', stepColor: 'bg-yellow-400', title: 'Knowledge Trace', desc: 'Submit assignments and take mock exams to earn Knowledge Points (KP) and advance your rank.' },
-                { step: '04', stepColor: 'bg-purple-600', title: 'Artifact Certification', desc: 'Upon completion, receive digital certificates verified by the IFTU Sovereign Gateway.' }
-              ].map((item, i) => (
-                <div key={i} className="bg-white p-12 rounded-[4rem] border-8 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row gap-10 items-center hover:translate-x-3 transition-all">
-                  <div className={`w-24 h-24 shrink-0 border-8 border-black rounded-[2rem] flex items-center justify-center text-3xl font-black text-white ${item.stepColor || 'bg-blue-600'}`}>
-                    {item.step}
-                  </div>
-                  <div className="space-y-4 flex-1">
-                    <h3 className="text-4xl font-black uppercase italic tracking-tight">{item.title}</h3>
-                    <p className="text-lg font-bold text-gray-500 leading-tight italic">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
       case 'search':
         return (
           <div className="max-w-6xl mx-auto space-y-16 py-12 animate-fadeIn">

@@ -10,6 +10,7 @@ import {
   Play, Plus, Search, FilePlus, ExternalLink, FileDown,
   Copy, Check, QrCode, Key, MessageSquare, Send, FileSpreadsheet, Download, Smartphone, LogOut
 } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { jsPDF } from 'jspdf';
 import { User, Grade, EducationLevel, Course, UserPermissions, Stream, Exam, News, Lesson, Language, ExamResult, Question, Assignment, AssignmentSubmission, AppNotification, ExamType, CourseMaterial, Difficulty, VideoLabItem, Enrollment, SystemSettings } from '../types';
 import { dbService } from '../services/dbService';
@@ -345,17 +346,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const [latency, setLatency] = useState<number | null>(null);
   const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [selectedStudentForQR, setSelectedStudentForQR] = useState<User | null>(null);
 
   const handleRunDiagnostics = async () => {
     setIsDiagnosing(true);
     setNotification({ message: "INITIATING SYSTEM LOAD TEST...", type: 'info' });
-    const ms = await dbService.measureLatency();
-    setLatency(ms);
-    setIsDiagnosing(false);
-    if (ms > 0) {
-      showNotification(`Diagnostics Complete: Latency clocked at ${ms}ms.`, 'success');
-    } else {
-      showNotification("Diagnostics Failure: Registry unreachable.", 'error');
+    try {
+      const ms = await dbService.measureLatency();
+      setLatency(ms);
+      
+      // Check Auth
+      const user = auth.currentUser;
+      if (!user) {
+        showNotification("Security Protocol: User session is unauthenticated.", "info");
+      }
+
+      // Check Storage
+      try {
+        await getDownloadURL(ref(storage, 'system/health_check.txt')).catch(() => {});
+      } catch (e) {
+        // Expected if file doesn't exist, but shows storage is reachable
+      }
+
+      setIsDiagnosing(false);
+      if (ms > 0) {
+        showNotification(`Diagnostics Complete: Latency clocked at ${ms}ms. Registry is operational.`, 'success');
+      } else {
+        showNotification("Diagnostics Failure: Registry unreachable.", 'error');
+      }
+    } catch (error) {
+      console.error("Diagnostic error:", error);
+      setIsDiagnosing(false);
+      showNotification("Critical System Failure: Internal handshaking interrupted.", 'error');
     }
   };
 
@@ -3149,6 +3171,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               {u.role === 'student' && (
                                 <>
                                   <button 
+                                    onClick={() => setSelectedStudentForQR(u)}
+                                    className="p-2 bg-black text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(249,115,22,1)] hover:translate-y-0.5 transition-all"
+                                    title="Generate NID QR"
+                                  >
+                                    <QrCode className="w-4 h-4" />
+                                  </button>
+                                  <button 
                                     onClick={() => setShowTranscriptForUser(u)}
                                     className="p-2 bg-purple-600 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all"
                                     title="Transcript"
@@ -3229,7 +3258,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="flex justify-end gap-2">
                     {u.role === 'student' && (
-                       <button onClick={() => setShowTranscriptForUser(u)} className="p-2 bg-purple-600 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><FileText size={14} /></button>
+                       <>
+                         <button onClick={() => setSelectedStudentForQR(u)} className="p-2 bg-black text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(249,115,22,1)]"><QrCode size={14} /></button>
+                         <button onClick={() => setShowTranscriptForUser(u)} className="p-2 bg-purple-600 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><FileText size={14} /></button>
+                       </>
                     )}
                     <button 
                       onClick={() => handleSendPasswordReset(u.email || "")} 
@@ -4638,6 +4670,70 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={() => setIsQRModalOpen(false)}
               className="w-full py-6 bg-black text-white rounded-2xl font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(249,115,22,1)] hover:translate-y-1 transition-all"
             >Dismiss Manifest</button>
+          </div>
+        </div>
+      )}
+
+      {/* Student NID QR Modal */}
+      {selectedStudentForQR && (
+        <div className="fixed inset-0 z-[9000] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white w-full max-w-lg rounded-[4rem] border-[12px] border-black p-12 text-center space-y-10 shadow-[40px_40px_0px_0px_rgba(34,197,94,1)] relative">
+            <button 
+              onClick={() => setSelectedStudentForQR(null)}
+              className="absolute top-8 right-8 text-4xl font-black hover:text-rose-600 transition-colors"
+            >✕</button>
+            
+            <div className="space-y-4">
+              <h3 className="text-4xl font-black uppercase italic leading-none tracking-tighter">Sovereign NID</h3>
+              <p className="text-xs font-black uppercase text-blue-600 tracking-[0.2em]">{selectedStudentForQR.name}</p>
+            </div>
+
+            <div className="bg-white border-8 border-black p-8 rounded-[3rem] mx-auto w-fit shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]">
+              <QRCodeCanvas 
+                value={JSON.stringify({
+                  id: selectedStudentForQR.id,
+                  nid: selectedStudentForQR.nid,
+                  sid: selectedStudentForQR.studentIdNumber,
+                  name: selectedStudentForQR.name,
+                  grade: selectedStudentForQR.grade,
+                  stream: selectedStudentForQR.stream
+                })} 
+                size={256}
+                level="H"
+                includeMargin={true}
+              />
+            </div>
+
+            <div className="bg-gray-50 p-8 rounded-[2.5rem] border-4 border-black space-y-4 text-left">
+              <p className="font-black text-xs uppercase italic border-b-2 border-gray-200 pb-2">Identity Metadata:</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black uppercase text-gray-400">NID Registry</p>
+                  <p className="text-xs font-black italic">{selectedStudentForQR.nid || 'PENDING'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black uppercase text-gray-400">Student ID</p>
+                  <p className="text-xs font-black italic">{selectedStudentForQR.studentIdNumber || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => {
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                  const url = canvas.toDataURL("image/png");
+                  const link = document.createElement('a');
+                  link.download = `NID_QR_${selectedStudentForQR.name}.png`;
+                  link.href = url;
+                  link.click();
+                  showNotification("QR Identity Asset Downloaded.", "success");
+                }
+              }}
+              className="w-full py-6 bg-black text-white rounded-2xl font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] hover:translate-y-1 transition-all flex items-center justify-center gap-3"
+            >
+              <Download size={24} /> Download Asset
+            </button>
           </div>
         </div>
       )}

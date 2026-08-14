@@ -14,18 +14,80 @@ const AboutPortal: React.FC<AboutPortalProps> = ({ currentUser }) => {
   return (
     <div className="max-w-6xl mx-auto space-y-32 py-12 animate-fadeIn">
       {/* Vision Hero */}
-      <section className="bg-white border-[10px] border-black rounded-[6rem] p-16 md:p-32 shadow-[30px_30px_0px_0px_rgba(255,205,0,1)] relative overflow-hidden">
+      <section className="bg-white border-[10px] border-black rounded-[6rem] p-16 md:p-24 shadow-[30px_30px_0px_0px_rgba(255,205,0,1)] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full opacity-5 pointer-events-none">
           <div className="ethiopian-gradient h-full w-full"></div>
         </div>
         <div className="space-y-12 relative z-10">
-          <div className="space-y-4">
-            <h2 className="text-6xl md:text-[8rem] font-black uppercase italic tracking-tighter leading-[0.8] text-blue-900">
-              Digital <br/>Sovereignty.
-            </h2>
-            <h2 className="text-4xl md:text-[5rem] font-black uppercase italic tracking-tighter leading-[0.8] text-green-700 opacity-80">
-              Barnoota <br/>Dijitaalaa.
-            </h2>
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="px-4 py-2 bg-black text-yellow-400 border-4 border-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
+                IFTU LMS NATIONAL PORTAL
+              </span>
+              <span className="px-4 py-2 bg-green-600 text-white border-4 border-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
+                SECONDARY & TVET EDUCATION
+              </span>
+            </div>
+            <h1 className="text-6xl md:text-[6.5rem] font-black uppercase italic tracking-tighter leading-[0.85] text-blue-900">
+              Empowering Ethiopia's <br/><span className="text-black">Digital Generation.</span>
+            </h1>
+            <div className="flex items-center gap-6 pt-4">
+              <div className="h-4 w-48 bg-red-600 rounded-full"></div>
+              <p className="text-xl font-bold text-gray-500 uppercase tracking-widest italic">Official System Introduction</p>
+            </div>
+          </div>
+
+          {/* Welcome Message Card (From Image) */}
+          <div className="bg-white border-8 border-black rounded-[4rem] p-10 md:p-16 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h2 className="text-4xl md:text-5xl font-black text-blue-900">
+                    Well come to <span className="text-green-600">IFTU LMS</span> ⚡
+                  </h2>
+                  <p className="text-xl font-black uppercase italic tracking-tight text-gray-500">secondary school and TEVT, students, and all users</p>
+                </div>
+                
+                <div className="space-y-6 border-l-8 border-yellow-400 pl-8">
+                  <p className="text-2xl font-black text-red-600 italic">Baga Nagaa Gara Applikeeshinii IFTU LMS dhuftan,</p>
+                  <p className="text-xl font-bold text-gray-800 leading-relaxed italic">
+                    Mana barumsa IFTU LMS kanatti barnootaa sadarkaa lammaffaa ykn kutaa 9_12 fi TVET gulantaa tokko hanga arfaffaa gosoota barnootaa itiyoophiyaatiin isiniif qophaa'e. Kanaafuu barataa ta'e barsiisoonni kana hubachuun:
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  {[
+                    { num: '1', text: 'Barsiisonni ogummaa Barnootaa Karaa Toora internet barsiisuun qopheessuuf dandeettii qabdan gara Applikeeshinii kana koottaa galmaa\'aa' },
+                    { num: '2', text: 'Barattoonni immoo iddoo join Register Jedhuun ykn admin tti ergaa galmaa\'aa jechuun ibsa isiniif ibsina.' },
+                    { num: '3', text: 'Haala itti fayyadaman Applleeshinii IFTU LMS kan bal\'aan ilaaluf yoo barbaaddan karaa Dashboard Waa\'ee Keenya ykn About jedhu dubbisaa ykn demo login Barsiisaa Fi barataa fayyadama.' }
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-6 items-start group/step">
+                      <div className="w-12 h-12 shrink-0 bg-blue-900 text-white border-4 border-black rounded-xl flex items-center justify-center font-black text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover/step:translate-y-1 group-hover/step:shadow-none transition-all">
+                        {item.num}
+                      </div>
+                      <p className="text-lg font-bold text-gray-700 leading-tight pt-1">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-8 border-t-4 border-black">
+                   <p className="text-xl font-black italic text-black">Waan Nu dhageeffataniif Galatoomaa, Horaa bulaa Seenaa !!</p>
+                   <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-2">By Administrator/developer - <span className="text-green-600 font-black">Jemal Fano Haji</span></p>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-600 rounded-[3rem] translate-x-4 translate-y-4"></div>
+                <img 
+                  src="/iftu_dashboard_hero.jpg" 
+                  alt="IFTU Dashboard Preview" 
+                  className="w-full h-auto rounded-[3.5rem] border-8 border-black relative z-10 object-cover shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1200';
+                  }}
+                />
+              </div>
+            </div>
           </div>
           
           {/* Developer Portrait Profile Card */}
@@ -87,6 +149,151 @@ const AboutPortal: React.FC<AboutPortalProps> = ({ currentUser }) => {
             </div>
           </div>
           <div className="h-4 w-48 bg-red-600"></div>
+        </div>
+      </section>
+
+      {/* User Tutorial & Guide Section (Akkamitti Download godha?) */}
+      <section className="bg-white border-[10px] border-black rounded-[5rem] p-12 md:p-24 shadow-[30px_30px_0px_0px_rgba(34,197,94,1)] relative overflow-hidden">
+        <div className="space-y-16 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-10">
+            <div className="space-y-3">
+              <span className="bg-green-600 text-white px-6 py-2 rounded-xl font-black uppercase text-xs tracking-widest italic border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                📘 System Tutorial // Qajeelfama
+              </span>
+              <h3 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">
+                Akkamitti download godha?
+              </h3>
+              <p className="text-xl font-bold text-gray-500 italic">How to download files and use the dashboard features.</p>
+            </div>
+            <div className="w-24 h-24 bg-yellow-400 border-8 border-black rounded-[2.5rem] flex items-center justify-center text-5xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-pulse">❓</div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="space-y-10">
+              <div className="bg-gray-50 border-8 border-black p-10 rounded-[3.5rem] shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] space-y-8">
+                <h4 className="text-3xl font-black uppercase italic border-b-4 border-black pb-4 flex items-center gap-4">
+                  <span className="text-4xl">📥</span> Akkamitti?
+                </h4>
+                <div className="space-y-6">
+                  {[
+                    { step: '1', text: 'Fakkii dashboard kana download gochuu danda\'a.' },
+                    { step: '2', text: 'Fakkii irratti right click gochaa.' },
+                    { step: '3', text: '"Save image as..." jedhu filadhaa.' },
+                    { step: '4', text: 'Kanaan booda bakka save gochuu barbaaddan filadhaa (Gallery ykn Files).' }
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-6 items-center">
+                      <div className="w-10 h-10 shrink-0 bg-black text-white rounded-full flex items-center justify-center font-black text-lg">
+                        {item.step}
+                      </div>
+                      <p className="text-xl font-bold text-gray-800 italic">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="pt-6 border-t-4 border-black">
+                  <p className="text-lg font-black uppercase text-blue-600 mb-4 italic">Ykn Mobile irratti:</p>
+                  <ul className="space-y-4">
+                     <li className="flex gap-4 items-center font-bold text-gray-700 italic">
+                       <span className="w-3 h-3 bg-blue-600 rounded-full"></span> Fakkii irratti tap gochaa.
+                     </li>
+                     <li className="flex gap-4 items-center font-bold text-gray-700 italic">
+                       <span className="w-3 h-3 bg-blue-600 rounded-full"></span> "Download image" ykn "Save to device" jedhu filadhaa.
+                     </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Audio Interface Section */}
+              <div className="bg-slate-900 text-white border-8 border-black p-10 rounded-[3.5rem] shadow-[15px_15px_0px_0px_rgba(59,130,246,1)] space-y-8">
+                <div className="space-y-2">
+                  <h4 className="text-3xl font-black uppercase italic flex items-center gap-4">
+                    <span className="text-4xl">🎙️</span> Sagalee dubbisaa?
+                  </h4>
+                  <p className="text-blue-300 font-bold italic">Voice narration and audio support.</p>
+                </div>
+                <p className="text-xl font-bold italic leading-relaxed text-gray-300">
+                  Eeyyee! Dashboard kanaaf sagalee dubbisaa (voice narration) ni danda'ama. Fakkeenya: Afaan Oromoo malee
+                </p>
+                
+                <div className="bg-black/50 border-4 border-slate-700 p-6 rounded-[2rem] flex flex-col md:flex-row items-center gap-6">
+                  <div className="w-16 h-16 bg-blue-600 border-4 border-black rounded-full flex items-center justify-center text-3xl animate-pulse">🔊</div>
+                  <div className="flex-1 w-full space-y-2">
+                    <div className="h-4 bg-slate-800 rounded-full overflow-hidden border-2 border-black">
+                       <div className="h-full w-1/3 bg-blue-500 animate-pulse"></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <span>0:00 / 1:45</span>
+                      <span>Sovereign Voice Feed</span>
+                    </div>
+                  </div>
+                  <button className="px-8 py-3 bg-green-600 text-white border-4 border-black rounded-xl font-black uppercase text-xs hover:translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    DOWNLOAD MP3
+                  </button>
+                </div>
+
+                <div className="pt-4 space-y-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-yellow-400">Sagalee dubbisuu barbaaddan:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {['Afaan Oromoo', 'Afaan Amaara', 'Afaan Ingiliffaa'].map((lang, i) => (
+                      <div key={i} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border-2 border-white/10">
+                        <span className="text-green-500">✅</span>
+                        <span className="text-sm font-bold italic">{lang}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Infographic Screenshots Column */}
+            <div className="space-y-10">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-black rounded-[4rem] translate-x-4 translate-y-4"></div>
+                <div className="relative z-10 bg-white border-8 border-black rounded-[4rem] overflow-hidden p-4 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]">
+                   <div className="p-6 bg-gray-50 border-b-4 border-black flex justify-between items-center">
+                     <span className="font-black uppercase italic tracking-tighter text-blue-900 text-2xl">Tutorial: Mobile App Interface</span>
+                     <span className="bg-yellow-400 text-black px-4 py-1 rounded-full border-2 border-black text-[10px] font-black uppercase">Official Guide</span>
+                   </div>
+                   <img 
+                    src="/iftu_tutorial_infographic_1.jpg" 
+                    alt="IFTU Tutorial Infographic" 
+                    className="w-full h-auto object-contain rounded-3xl"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=1200';
+                    }}
+                   />
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute inset-0 bg-blue-600 rounded-[4rem] translate-x-4 translate-y-4"></div>
+                <div className="relative z-10 bg-white border-8 border-black rounded-[4rem] overflow-hidden p-4 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]">
+                   <div className="p-6 bg-gray-50 border-b-4 border-black flex justify-between items-center">
+                     <span className="font-black uppercase italic tracking-tighter text-green-700 text-2xl">Visual Dashboard Guide</span>
+                     <span className="bg-blue-600 text-white px-4 py-1 rounded-full border-2 border-black text-[10px] font-black uppercase">Registry View</span>
+                   </div>
+                   <img 
+                    src="/iftu_tutorial_infographic_2.jpg" 
+                    alt="IFTU Dashboard Guide" 
+                    className="w-full h-auto object-contain rounded-3xl"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200';
+                    }}
+                   />
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border-8 border-black p-10 rounded-[3.5rem] shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex items-start gap-8">
+                <div className="text-6xl animate-bounce">💡</div>
+                <div className="space-y-2">
+                  <p className="text-xl font-black uppercase italic text-black">Hubachiisa:</p>
+                  <p className="text-lg font-bold text-gray-700 leading-tight italic">
+                    Sagalee dubbisaa yoo barbaaddan, afaan isini barbaachisu nuuf himaa. Sagalee dubbisaa daqiiqaa 1-2 keessatti keessanitti qopheessa.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
