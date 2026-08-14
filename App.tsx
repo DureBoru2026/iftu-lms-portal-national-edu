@@ -577,7 +577,7 @@ const App: React.FC = () => {
       unsubSubmissions();
       unsubQuestionBank();
     };
-  }, [isLoggedIn, currentUser?.id, isOnline]);
+  }, [isLoggedIn, currentUser?.id]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
@@ -784,7 +784,7 @@ const App: React.FC = () => {
         } else if (errorMessage.includes('projectconfigservice.getprojectconfig-are-blocked')) {
           message = "SYSTEM CONFIG ERROR: Identity Toolkit is blocked by Google Cloud for this projectID. Please use Demo access for now.";
         } else if (errorCode === 'auth/unauthorized-domain' || errorMessage.includes('unauthorized-domain')) {
-          message = "UNAUTHORIZED DOMAIN: This domain is not in your Firebase whitelist. Please add it in the Firebase Console.";
+          message = "UNAUTHORIZED DOMAIN: This domain is not in your Firebase whitelist. Please add it in the Firebase Console (Authentication > Settings > Authorized domains). Iddoo kanaaf documentation porojeekitii guutuu kanas ilaali sirreessi fooyyessi haaromsa guutuu isaa mirkaneessi.";
         } else if (errorCode === 'auth/popup-closed-by-user' || errorMessage.includes('popup-closed-by-user')) {
           message = "WINDOW CLOSED: Authentication was interrupted. Please click 'SIGN IN WITH GOOGLE' again and don't close the window.";
         } else if (errorCode === 'auth/popup-blocked' || errorMessage.includes('popup-blocked')) {

@@ -150,6 +150,10 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right Section Actions */}
           <div className="flex items-center gap-2 md:gap-3 shrink-0 relative" ref={dropdownRef}>
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-green-500/10 border-2 border-black rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-[9px] font-black uppercase tracking-tight text-green-700">Sovereign Portal Access Ready</span>
+            </div>
             {/* Language & Theme Selectors (Hidden on Mobile) */}
             <div className="hidden md:flex items-center gap-2">
               <button 

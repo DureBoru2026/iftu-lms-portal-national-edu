@@ -18,8 +18,8 @@ const ProjectReportPortal: React.FC = () => {
       "Teacher Forge: AI-assisted exam generation and curriculum architecture.",
       "Offline-First: Resilient synchronization for areas with intermittent connectivity."
     ],
-    technical: "Built with React 19, TypeScript, Tailwind CSS v4, and Firebase. Powered by Advanced AI models for educational intelligence and real-time pedagogical adaptation.",
     architecture: "The IFTU platform utilizes a decentralized sovereign architecture, ensuring that all educational data remains within the national digital boundaries. It features a robust real-time synchronization engine powered by Firestore for resilient learning.",
+    technical: "Built with React 19, TypeScript, Tailwind CSS v4, and Firebase. Powered by Advanced AI models for educational intelligence and real-time pedagogical adaptation.",
     vision: "To bridge the digital divide in Ethiopia by providing high-quality, AI-enhanced education that respects national values and digital sovereignty."
   };
 
@@ -33,8 +33,8 @@ const ProjectReportPortal: React.FC = () => {
       "Forge Barsiisotaa: Qorumsa qopheessuu fi sirna barnootaa AI-n deeggarame.",
       "Offline-First: Naannolee tajaajila interneetii hin qabneef sirna wal-simsiisuu danda'u."
     ],
-    technical: "React 19, TypeScript, Tailwind CSS v4, fi Firebase fayyadamanii ijaarame. Barnootaaf itti fayyadama.",
     architecture: "Pilaatfoormiin IFTU arkiteektara of-danda'aa bittinnaa'e fayyadama, kunis ragaan barnootaa hundi daangaa dijitaalaa biyya keessatti akka hafu mirkaneessa.",
+    technical: "React 19, TypeScript, Tailwind CSS v4, fi Firebase fayyadamanii ijaarame. Barnootaaf itti fayyadama.",
     vision: "Barnoota qulqullina qabu, AI-n deeggarame kan duudhaalee biyyaalessaa fi birmadummaa dijitaalaa kabaju dhiyeessuun garaagarummaa dijitaalaa Itoophiyaa keessa jiru dhiphisuuf."
   };
 

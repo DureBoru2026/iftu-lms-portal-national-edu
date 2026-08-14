@@ -7,10 +7,13 @@ import firebaseConfig from './firebase-applet-config.json';
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore with memory cache. 
-// We avoid experimentalForceLongPolling unless strictly necessary as it can cause assertion failures (ca9/b815) in some proxy setups.
+// We use experimentalForceLongPolling to resolve internal assertion failures (ca9/b815) 
+// that can occur in restricted proxy/iframe environments.
 export const db = initializeFirestore(app, {
   ignoreUndefinedProperties: true,
-  localCache: memoryLocalCache()
+  localCache: memoryLocalCache(),
+  experimentalForceLongPolling: true,
+  experimentalAutoDetectLongPolling: false
 }, firebaseConfig.firestoreDatabaseId);
 
 /**
