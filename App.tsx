@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ShieldAlert, Menu, Play } from 'lucide-react';
 import StudentProfile from './components/StudentProfile';
 import Header from './components/Header';
+import HomePortal from './components/HomePortal';
 import CourseCard from './components/CourseCard';
 import AITutor from './components/AITutor';
 import ExamEngine from './components/ExamEngine';
@@ -13,6 +14,7 @@ import AdminDashboard from './components/AdminDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import PerformancePortal from './components/PerformancePortal';
 import AboutPortal from './components/AboutPortal';
+import PublicNewsFeed from './components/PublicNewsFeed';
 import CampusLocator from './components/CampusLocator';
 import DevPortal from './components/DevPortal';
 import FeedbackWidget from './components/FeedbackWidget';
@@ -32,9 +34,9 @@ import { StudentSidebar } from './components/StudentSidebar';
 
 const TRANSLATIONS: Record<Language, Record<string, string>> = {
   en: { 
-    home: 'Home', 
+    home: 'Sovereign HUB', 
     courses: 'Courses', 
-    news: 'News', 
+    news: 'Bulletins', 
     mediahub: 'Media Hub', 
     about: 'About Us', 
     locator: 'Locator', 
@@ -47,10 +49,12 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     leaderboard: 'Rankings', 
     performance: 'My Results',
     forum: 'Community',
-    planner: 'AI Planner'
+    planner: 'AI Planner',
+    admin: 'Supreme Administrator',
+    teacher: 'Faculty Center'
   },
   am: { 
-    home: 'መነሻ', 
+    home: 'ዋና ማዕከል', 
     courses: 'ትምህርቶች', 
     news: 'ዜና', 
     mediahub: 'ሚዲያ', 
@@ -65,10 +69,12 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     leaderboard: 'ደረጃዎች', 
     performance: 'ውጤቴ',
     forum: 'ማህበረሰብ',
-    planner: 'የጥናት ዕቅድ'
+    planner: 'የጥናት ዕቅድ',
+    admin: 'ጠቅላይ አስተዳዳሪ',
+    teacher: 'የመምህራን ማዕከል'
   },
   om: { 
-    home: 'Mana', 
+    home: 'Sovereign HUB', 
     courses: 'Koorsoota', 
     news: 'Oduu', 
     mediahub: 'Media Hub', 
@@ -83,7 +89,9 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     leaderboard: 'Sadarkaa', 
     performance: 'Bu’aa koo',
     forum: 'Hawaasa',
-    planner: 'Karoorsaa AI'
+    planner: 'Karoorsaa AI',
+    admin: 'Supreme Administrator',
+    teacher: 'Faculty Center'
   }
 };
 
@@ -481,13 +489,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isLoggedIn || !auth.currentUser) return;
-
-    // Auto-sync news if empty (Admin only to prevent permission errors)
-    if (news.length === 0 && currentUser?.role === 'admin') {
-      handleSyncNews();
-    }
-
     const handleError = (err: any) => {
       const msg = err.message || String(err);
       if (msg.includes('Missing or insufficient permissions')) {
@@ -497,19 +498,10 @@ const App: React.FC = () => {
       }
     };
 
-    const unsubExams = dbService.subscribeToExams(async (data) => {
-      setExams(data);
-      // Sync MOCK_EXAMS if Firestore is missing them
-      for (const mockExam of MOCK_EXAMS) {
-        if (!data.find(e => e.id === mockExam.id)) {
-          await dbService.addExam(mockExam);
-        }
-      }
-    }, handleError);
-
+    // Public Data Subscriptions
     const unsubCourses = dbService.subscribeToCourses(async (data) => {
       setCourses(data);
-      if (currentUser?.role === 'admin' || currentUser?.role === 'teacher') {
+      if (isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'teacher')) {
         for (const mockCourse of MOCK_COURSES) {
           if (!data.find(c => c.id === mockCourse.id)) {
             await dbService.syncCourse(mockCourse);
@@ -522,45 +514,63 @@ const App: React.FC = () => {
       setNews(data);
     }, handleError);
 
-    const unsubUsers = dbService.subscribeToUsers(async (data) => {
-      setUsers(data);
-      // Sync INITIAL_USERS to Firestore if they don't exist (Admin only)
-      if (currentUser?.role === 'admin') {
-        for (const initialUser of INITIAL_USERS) {
-          if (!data.find(u => u.id === initialUser.id || u.email === initialUser.email)) {
-            try {
-              await dbService.syncUser(initialUser);
-            } catch (err) {
-              console.warn("Failed to sync initial user:", initialUser.id, err);
+    // Private Data Subscriptions
+    let unsubExams = () => {};
+    let unsubUsers = () => {};
+    let unsubResults = () => {};
+    let unsubAssignments = () => {};
+    let unsubSubmissions = () => {};
+    let unsubQuestionBank = () => {};
+
+    if (isLoggedIn && auth.currentUser) {
+      unsubExams = dbService.subscribeToExams(async (data) => {
+        setExams(data);
+        for (const mockExam of MOCK_EXAMS) {
+          if (!data.find(e => e.id === mockExam.id)) {
+            await dbService.addExam(mockExam);
+          }
+        }
+      }, handleError);
+
+      unsubUsers = dbService.subscribeToUsers(async (data) => {
+        setUsers(data);
+        if (currentUser?.role === 'admin') {
+          for (const initialUser of INITIAL_USERS) {
+            if (!data.find(u => u.id === initialUser.id || u.email === initialUser.email)) {
+              try {
+                await dbService.syncUser(initialUser);
+              } catch (err) {
+                console.warn("Failed to sync initial user:", initialUser.id, err);
+              }
             }
           }
         }
-      }
-    }, handleError);
+      }, handleError);
 
-    const unsubResults = dbService.subscribeToExamResults((data) => {
-      setAllExamResults(data);
-      if (currentUser) {
-        setUserResults(data.filter(r => r.studentId === currentUser.id));
-      }
-    }, handleError);
+      unsubResults = dbService.subscribeToExamResults((data) => {
+        setAllExamResults(data);
+        if (currentUser) {
+          setUserResults(data.filter(r => r.studentId === currentUser.id));
+        }
+      }, handleError);
 
-    const unsubAssignments = dbService.subscribeToAssignments((data) => {
-      setAssignments(data);
-    }, handleError);
+      unsubAssignments = dbService.subscribeToAssignments((data) => {
+        setAssignments(data);
+      }, handleError);
 
-    const unsubSubmissions = dbService.subscribeToSubmissions((data) => {
-      setSubmissions(data);
-    }, handleError);
+      unsubSubmissions = dbService.subscribeToSubmissions((data) => {
+        setSubmissions(data);
+      }, handleError);
 
-    const unsubQuestionBank = dbService.subscribeToQuestionBank((data) => {
-      setQuestionBank(data);
-    }, handleError);
+      unsubQuestionBank = dbService.subscribeToQuestionBank((data) => {
+        setQuestionBank(data);
+      }, handleError);
+    }
 
     return () => {
-      unsubExams();
       unsubCourses();
       unsubNews();
+      unsubExams();
       unsubUsers();
       unsubResults();
       unsubAssignments();
@@ -1070,6 +1080,31 @@ const App: React.FC = () => {
     }, ...prev]);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    setActiveView('home');
+    setIsDemoSession(false);
+    localStorage.removeItem('user_session');
+  };
+
+  const handleExamComplete = async (result: any) => {
+    setUserResults(prev => [result, ...prev]);
+    setActiveExam(null);
+    setActiveView('performance');
+    
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        completedExams: [...(currentUser.completedExams || []), result.examId],
+        points: currentUser.points + (result.score >= 50 ? 500 : 100)
+      };
+      setCurrentUser(updatedUser);
+      await dbService.saveExamResult(result);
+      await dbService.syncUser(updatedUser);
+    }
+  };
+
   const renderContent = () => {
     // System-wide Maintenance Enforcement
     if (systemSettings?.maintenanceMode && currentUser?.role !== 'admin') {
@@ -1217,25 +1252,10 @@ const App: React.FC = () => {
                     <p className="mb-4 opacity-90 leading-relaxed font-mono text-[11px]">{authError}</p>
                     <div className="flex flex-wrap gap-3">
                       <button 
-                        onClick={() => handleLogin(undefined, 'student@iftu.edu.et', 'demo')}
-                        className="flex-1 min-w-[160px] px-6 py-4 bg-green-500 text-white rounded-xl text-[10px] font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
-                      >
-                        ⚡ INSTANT PORTAL ACCESS →
-                      </button>
-                      <button 
-                        onClick={() => {
-                          const win = window.open(window.location.href, '_blank');
-                          if (win) win.focus();
-                        }}
-                        className="px-4 py-4 bg-yellow-400 text-black rounded-xl text-[10px] font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all"
-                      >
-                        🚀 Open New Tab
-                      </button>
-                      <button 
                         onClick={() => setAuthError(null)}
-                        className="px-4 py-4 bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 rounded-xl text-[10px] font-black uppercase transition-all"
+                        className="w-full px-4 py-4 bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 rounded-xl text-[10px] font-black uppercase transition-all"
                       >
-                        ✕ Dismiss
+                        ✕ Dismiss and Try Again
                       </button>
                     </div>
                   </div>
@@ -1315,37 +1335,35 @@ const App: React.FC = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-12 border-t-8 border-black/5">
+          <div className="grid grid-cols-1 gap-6 pt-12 border-t-8 border-black/5">
              <button 
                onClick={() => setActiveView('about')}
-               className="p-6 bg-blue-100 border-4 border-black rounded-[2rem] font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex flex-col items-center gap-3"
+               className="p-8 bg-blue-100 border-8 border-black rounded-[2.5rem] font-black uppercase text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all flex items-center justify-center gap-6 group"
              >
-               <span className="text-3xl">ℹ️</span>
-               <span>Waa'ee Keenya (About)</span>
-             </button>
-             <button 
-               onClick={() => handleLogin(undefined, 'admin@iftu.edu.et', 'demo')} 
-               className="p-6 bg-purple-100 border-4 border-black rounded-[2.5rem] font-black uppercase text-[10px] hover:bg-purple-200 transition-all flex items-center justify-center gap-4"
-             >
-               <span className="text-2xl">👑</span> Admin Demo
-             </button>
-             <button 
-               onClick={() => handleLogin(undefined, 'teacher@iftu.edu.et', 'demo')} 
-               className="p-6 bg-orange-100 border-4 border-black rounded-[2.5rem] font-black uppercase text-[10px] hover:bg-orange-200 transition-all flex items-center justify-center gap-4"
-             >
-               <span className="text-2xl">👨‍🏫</span> Teacher Demo
-             </button>
-             <button 
-               onClick={() => handleLogin(undefined, 'student@iftu.edu.et', 'demo')} 
-               className="p-6 bg-blue-100 border-4 border-black rounded-[2.5rem] font-black uppercase text-[10px] hover:bg-blue-200 transition-all flex items-center justify-center gap-4"
-             >
-               <span className="text-2xl">🎓</span> Student Demo
+               <span className="text-4xl group-hover:rotate-12 transition-transform">ℹ️</span>
+               <div className="text-left">
+                  <p className="leading-none">Waa'ee Keenya</p>
+                  <p className="text-[10px] opacity-50">(System Introduction)</p>
+               </div>
              </button>
           </div>
 
           <p className="text-xs font-black uppercase tracking-widest text-gray-400">
             Authorized Personnel Only • National Security Protocols Active
           </p>
+        </div>
+
+        {/* Public News Feed / Video Guide Section */}
+        <div className="mt-24 space-y-12">
+          <div className="flex items-center gap-6">
+            <div className="h-4 grow bg-black/5 rounded-full"></div>
+            <span className="px-6 py-2 bg-black text-white border-4 border-black rounded-xl font-black uppercase text-xs tracking-widest italic">
+              📢 Sovereign Bulletin Feed
+            </span>
+            <div className="h-4 grow bg-black/5 rounded-full"></div>
+          </div>
+          
+          <PublicNewsFeed onLogin={() => setActiveView('login')} />
         </div>
       </div>
     );
@@ -2223,773 +2241,131 @@ const App: React.FC = () => {
             )}
           </div>
         );
+      case 'home':
       default:
-        return (
-          <div className="space-y-32 animate-fadeIn pb-24">
-            {/* Hero Section - Sovereign Master Banner */}
-            <section className="rounded-[4.5rem] p-8 md:p-24 text-black bg-white border-8 border-black shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col items-center text-center group">
-              {/* Background Artwork Layer */}
-              <div className="absolute inset-0 pointer-events-none z-0">
-                <img 
-                  src="/iftu_sovereign_hero_banner.jpg" 
-                  alt="IFTU Sovereign Digital Campus" 
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover opacity-20 scale-105 group-hover:scale-100 transition-transform duration-1000 filter contrast-125 relative z-10" 
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                />
-                {/* Gradient vignette mask to preserve text readability */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-white/95"></div>
-              </div>
-
-              {/* Decorative background glows */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-amber-200/40 rounded-full blur-3xl pointer-events-none -mr-48 -mt-48"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none -ml-32 -mb-32"></div>
-
-              <div className="relative z-10 max-w-6xl space-y-10">
-                <div className="space-y-8">
-                  {isLoggedIn && (
-                    <motion.div 
-                      initial={{ y: -20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      className="bg-white/90 backdrop-blur-md px-10 py-4 rounded-full border-4 border-black inline-block mb-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-                    >
-                      <p className="text-xs md:text-sm font-black uppercase tracking-[0.3em] text-blue-900 flex items-center gap-3">
-                        <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                        Welcome back, {currentUser?.name} ({currentUser?.role?.toUpperCase()})
-                      </p>
-                    </motion.div>
-                  )}
-                  
-                  <div className="flex flex-col items-center">
-                    <h1 className="text-[3.5rem] md:text-[6rem] lg:text-[7.5rem] font-black uppercase tracking-tighter leading-[0.85] italic break-words text-center md:text-left w-full mx-auto flex flex-col md:block">
-                      <span className="text-black block drop-shadow-[2px_2px_0px_rgba(0,0,0,0.1)] mb-2 md:mb-0 md:inline">IFTU LMS </span>
-                      <span className="text-[#009b44] block drop-shadow-[4px_4px_0px_rgba(0,0,0,0.1)] md:inline">SOVEREIGN </span>
-                      <span className="text-[#ffcd00] block text-6xl md:text-[8rem] my-4 md:my-0 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] md:inline-block animate-bounce">⚡</span>
-                      <span className="text-[#ef3340] block drop-shadow-[4px_4px_0px_rgba(0,0,0,0.1)] md:inline"> LEARNING </span>
-                      <span className="text-[#ef3340] block drop-shadow-[4px_4px_0px_rgba(0,0,0,0.1)] mt-2 md:mt-0 md:inline">PLATFORM</span>
-                    </h1>
-
-                    {news.length > 0 && (
-                      <div className="mt-10 transition-transform hover:scale-105 active:scale-95">
-                        <button 
-                          onClick={() => setActiveView('news')}
-                          className="bg-[#ef3340] text-white px-8 py-3.5 rounded-full border-4 border-black font-black uppercase text-[10px] md:text-xs shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-2 mx-auto"
-                        >
-                          <span className="w-2 h-2 bg-yellow-300 rounded-full animate-ping"></span>
-                          <span className="tracking-widest">LATEST BULLETIN: {news[0].title} →</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-6 pt-2">
-                  <p className="text-xl md:text-4xl font-black uppercase tracking-[0.2em] italic text-black leading-tight drop-shadow-[2px_2px_0px_rgba(255,205,0,1)]">
-                    Empowering Ethiopia's Digital Generation.
-                  </p>
-                  
-                  {/* Developer Jemal Fano Haji Profile Badge Card */}
-                  <div className="pt-4 flex justify-center">
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      className="bg-white border-4 border-black rounded-[2.5rem] p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center gap-5 max-w-md w-full"
-                    >
-                      <div className="relative shrink-0 w-16 h-16 md:w-20 md:h-20">
-                        <img 
-                          src="/developer_jemal_fano_portrait.jpg" 
-                          alt="Developer Jemal Fano Haji" 
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full rounded-2xl border-4 border-black object-cover shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative z-10"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <div className="absolute inset-0 rounded-2xl border-4 border-black bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center font-black text-xl text-black z-0">
-                          JFH
-                        </div>
-                        <span className="absolute -bottom-1 -right-1 bg-amber-400 border-2 border-black rounded-full text-xs p-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-20" title="Verified Creator">
-                          👑
-                        </span>
-                      </div>
-                      <div className="text-left space-y-1">
-                        <span className="px-2.5 py-0.5 bg-black text-amber-300 border border-black rounded-md text-[9px] font-black uppercase tracking-widest">
-                          LEAD DEVELOPER & FOUNDER
-                        </span>
-                        <h4 className="text-lg md:text-xl font-black uppercase italic text-black leading-tight">
-                          JEMAL FANO HAJI
-                        </h4>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                          jemalfano030@gmail.com • Sovereign System Architect
-                        </p>
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-
-                {!isLoggedIn && (
-                  <div className="flex flex-col sm:flex-row gap-8 justify-center pt-8">
-                    <button 
-                      onClick={() => setActiveView('login')} 
-                      className="group bg-black text-white px-16 py-8 rounded-[3rem] border-[10px] border-black font-black uppercase text-xl md:text-3xl shadow-[20px_20px_0px_0px_rgba(59,130,246,1)] hover:shadow-none hover:translate-x-2 hover:translate-y-2 transition-all flex items-center gap-4"
-                    >
-                      ACCESS PORTAL
-                      <span className="group-hover:translate-x-2 transition-transform">→</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Animated School Components & Sovereign Campus Showcase */}
-            <motion.section 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="max-w-7xl mx-auto space-y-12 px-4"
-            >
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-8">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <span className="px-4 py-1.5 bg-[#009b44] text-white border-4 border-black rounded-full font-black text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                      ADUU GANAMA ACADEMY
-                    </span>
-                    <span className="px-4 py-1.5 bg-[#ffcd00] text-black border-4 border-black rounded-full font-black text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                      DIGITAL SOVEREIGN CAMPUS
-                    </span>
-                  </div>
-                  <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none mt-4 text-black">
-                    School & Faculty Ecosystem.
-                  </h2>
-                  <p className="text-sm md:text-base font-black uppercase text-gray-500 tracking-wider mt-2">
-                    Empowering Ethiopian Students, Educators, and Curriculum Materials under one sovereign digital center.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {/* Card 1: Students & Digital Learning Materials */}
-                <motion.div 
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                  className="bg-white border-[10px] border-black rounded-[4.5rem] overflow-hidden shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between relative group"
-                >
-                  <div className="h-80 relative overflow-hidden border-b-[10px] border-black bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900">
-                    <img 
-                      src="/iftu_students_learning.jpg" 
-                      alt="IFTU Students Learning" 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 relative z-10" 
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-white text-center bg-gradient-to-br from-emerald-700 via-green-800 to-teal-900 z-0">
-                      <div className="text-7xl mb-3 animate-bounce">👨‍🎓</div>
-                      <span className="font-black text-2xl md:text-3xl uppercase italic tracking-wider">Aduu Ganama Student Academy</span>
-                      <span className="text-xs md:text-sm font-bold text-emerald-200 uppercase tracking-widest mt-1">Sovereign Education & Digital Textbooks</span>
-                    </div>
-                    <div className="absolute top-6 left-6 flex flex-wrap gap-2 z-20">
-                      <span className="px-4 py-2 bg-[#009b44] text-white border-4 border-black rounded-full text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-                        👨‍🎓 Ethiopian Students
-                      </span>
-                      <span className="px-4 py-2 bg-[#ffcd00] text-black border-4 border-black rounded-full text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                        📖 Materials & Devices
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-10 space-y-6 bg-gradient-to-br from-amber-50/50 to-white">
-                    <h3 className="text-3xl md:text-4xl font-black uppercase italic text-black leading-tight">
-                      Interactive Student Hub & Sovereign Index
-                    </h3>
-                    <p className="text-base font-bold text-gray-600 uppercase italic leading-relaxed">
-                      Students collaborate with interactive digital textbooks, track Grade 11 & 12 exam trajectories, and earn Knowledge Points along the Aduu Ganama roadmap.
-                    </p>
-                    <div className="pt-4 flex items-center justify-between border-t-4 border-black">
-                      <span className="text-xs font-black uppercase tracking-widest text-[#009b44]">
-                        🟢 100% Curriculum Synchronized
-                      </span>
-                      <button 
-                        onClick={() => setActiveView(isLoggedIn ? 'student' : 'login')}
-                        className="px-6 py-3 bg-black text-white border-4 border-black rounded-2xl font-black uppercase italic text-xs shadow-[4px_4px_0px_0px_rgba(59,130,246,1)] hover:bg-gray-800 transition-colors"
-                      >
-                        Explore Student Portal →
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Card 2: Teacher & STEM Classroom */}
-                <motion.div 
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                  className="bg-white border-[10px] border-black rounded-[4.5rem] overflow-hidden shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between relative group"
-                >
-                  <div className="h-80 relative overflow-hidden border-b-[10px] border-black bg-gradient-to-br from-blue-600 via-indigo-700 to-slate-900">
-                    <img 
-                      src="/iftu_teacher_classroom.jpg" 
-                      alt="IFTU Teacher Classroom" 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 relative z-10" 
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-white text-center bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 z-0">
-                      <div className="text-7xl mb-3 animate-pulse">👩‍🏫</div>
-                      <span className="font-black text-2xl md:text-3xl uppercase italic tracking-wider">Smart STEM Classroom Studio</span>
-                      <span className="text-xs md:text-sm font-bold text-blue-200 uppercase tracking-widest mt-1">AI Lessons & Faculty Command Center</span>
-                    </div>
-                    <div className="absolute top-6 left-6 flex flex-wrap gap-2 z-20">
-                      <span className="px-4 py-2 bg-[#ef3340] text-white border-4 border-black rounded-full text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
-                        👩‍🏫 Faculty & Lecturers
-                      </span>
-                      <span className="px-4 py-2 bg-blue-600 text-white border-4 border-black rounded-full text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                        🧪 Smart STEM Board
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-10 space-y-6 bg-gradient-to-br from-blue-50/50 to-white">
-                    <h3 className="text-3xl md:text-4xl font-black uppercase italic text-black leading-tight">
-                      Teacher Command Center & Lesson Studio
-                    </h3>
-                    <p className="text-base font-bold text-gray-600 uppercase italic leading-relaxed">
-                      Educators broadcast AI-assisted video lessons, generate standardized exam templates, and grade EAES national mock evaluations in real time.
-                    </p>
-                    <div className="pt-4 flex items-center justify-between border-t-4 border-black">
-                      <span className="text-xs font-black uppercase tracking-widest text-[#ef3340]">
-                        ⚡ AI Video Generator Active
-                      </span>
-                      <button 
-                        onClick={() => setActiveView(isLoggedIn ? (currentUser?.role === 'teacher' ? 'teacher' : 'courses') : 'login')}
-                        className="px-6 py-3 bg-black text-white border-4 border-black rounded-2xl font-black uppercase italic text-xs shadow-[4px_4px_0px_0px_rgba(249,115,22,1)] hover:bg-gray-800 transition-colors"
-                      >
-                        Access Faculty Console →
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </motion.section>
-
-            {/* News & Announcements Section (Beeksisa) */}
-            <div className="max-w-7xl mx-auto space-y-16 px-4">
-              <div className="flex items-center justify-between border-b-8 border-black pb-8">
-                <div className="flex items-center gap-8">
-                  <div className="w-24 h-24 bg-[#ef3340] border-[10px] border-black rounded-[2.5rem] flex items-center justify-center text-5xl shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] animate-bounce-slow">📢</div>
-                  <div>
-                    <h2 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">Bulletins.</h2>
-                    <p className="text-xs md:text-sm font-black uppercase text-gray-500 mt-4 tracking-[0.3em]">Latest Announcements & Beeksisa</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setActiveView('news')} 
-                  className="hidden md:flex items-center gap-3 text-lg font-black uppercase italic border-b-6 border-black hover:text-[#ef3340] transition-colors pb-1"
-                >
-                  View All Hubs <span>→</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {/* Featured Public BBO TIMS Portal Banner */}
-                <BBOTimsBanner variant="card" />
-
-                {news.slice(0, 3).map((n, i) => (
-                  <motion.div 
-                    key={n.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="group bg-white border-[10px] border-black rounded-[4.5rem] overflow-hidden shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] flex flex-col hover:shadow-none hover:translate-x-3 hover:translate-y-3 transition-all cursor-pointer" 
-                    onClick={() => setActiveView('news')}
-                  >
-                    <div className="h-64 border-b-[10px] border-black relative overflow-hidden">
-                      <img src={n.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
-                      <div className="absolute top-6 left-6">
-                        <span className="px-6 py-2 bg-[#ef3340] text-white border-4 border-black rounded-full text-xs font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                          {n.tag}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-10 space-y-6">
-                      <div className="flex justify-between items-center bg-gray-50 p-4 rounded-3xl border-4 border-black">
-                        <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{n.date}</span>
-                        <div className="flex gap-1">
-                          {[1,2,3].map(dot => <div key={dot} className="w-2 h-2 bg-black rounded-full opacity-20"></div>)}
-                        </div>
-                      </div>
-                      <h3 className="text-4xl font-black uppercase italic leading-none tracking-tight group-hover:text-blue-600 transition-colors">
-                        {n.title}
-                      </h3>
-                      <p className="text-lg font-bold text-gray-500 italic leading-relaxed line-clamp-2">
-                        {n.summary}
-                      </p>
-                      <div className="pt-4 flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-4 text-blue-600 font-black uppercase text-sm italic group-hover:translate-x-2 transition-transform">
-                          Read Official Bulletin <span>→</span>
-                        </div>
-                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const text = `📢 ${n.title}\n\n${n.summary || ''}\n\nRead more on IFTU LMS:`;
-                              window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
-                            }}
-                            className="bg-[#229ED9] text-white px-3 py-1.5 rounded-lg border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-1"
-                            title="Share to Telegram"
-                          >
-                            ✈️ Telegram
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
-                            }}
-                            className="bg-[#1877F2] text-white px-3 py-1.5 rounded-lg border-2 border-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all flex items-center gap-1"
-                            title="Share to Facebook"
-                          >
-                            f Facebook
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Course Catalogue Highlights Section */}
-            <div className="max-w-7xl mx-auto space-y-16 px-4">
-              <div className="flex items-center justify-between border-b-8 border-black pb-8">
-                <div className="flex items-center gap-8">
-                  <div className="w-24 h-24 bg-[#009b44] border-[10px] border-black rounded-[2.5rem] flex items-center justify-center text-5xl shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">📚</div>
-                  <div>
-                    <h2 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">Courses Highlight.</h2>
-                    <p className="text-xs md:text-sm font-black uppercase text-gray-500 mt-4 tracking-[0.3em]">Featured National Digital Curriculum & Status</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setActiveView('courses')} 
-                  className="hidden md:flex items-center gap-3 text-lg font-black uppercase italic border-b-6 border-black hover:text-[#009b44] transition-colors pb-1"
-                >
-                  Explore Full Catalogue <span>→</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-                {courses.slice(0, 4).map(c => (
-                  <CourseCard 
-                    key={c.id} 
-                    course={c} 
-                    userRole={currentUser?.role}
-                    onClick={(crs) => setViewingCourse(crs)} 
-                    completedLessonIds={currentUser?.completedLessons}
-                    completedCourseIds={currentUser?.completedCourses}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {isLoggedIn && currentUser?.role === 'student' && (
-              <div className="max-w-6xl mx-auto space-y-12 animate-fadeIn">
-                <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-blue-600 border-8 border-black rounded-[2rem] flex items-center justify-center text-4xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">📋</div>
-                  <div>
-                    <h2 className="text-6xl font-black uppercase italic tracking-tighter leading-none">Identity Board.</h2>
-                    <p className="text-[10px] font-black uppercase text-gray-400 mt-2 tracking-widest">Official Registration Trace</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                  <div className="bg-white border-8 border-black rounded-[4rem] p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-100 border-4 border-black rounded-xl flex items-center justify-center text-2xl">👤</div>
-                      <h3 className="text-2xl font-black uppercase italic">Sovereign Data</h3>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-gray-50 border-4 border-black rounded-2xl">
-                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Full Legal Name</p>
-                        <p className="text-xl font-black italic">{currentUser.name}</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 border-4 border-black rounded-2xl">
-                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">National ID (NID)</p>
-                        <p className="text-xl font-black italic">{currentUser.nid || 'NOT_ASSIGNED'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border-8 border-black rounded-[4rem] p-12 shadow-[20px_20px_0px_0px_rgba(59,130,246,1)] space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-blue-100 border-4 border-black rounded-xl flex items-center justify-center text-2xl">🎓</div>
-                      <h3 className="text-2xl font-black uppercase italic">Academic Trace</h3>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-blue-50 border-4 border-black rounded-2xl">
-                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Grade / Level</p>
-                        <p className="text-xl font-black italic">{currentUser.grade || 'UNMAPPED'}</p>
-                      </div>
-                      <div className="p-4 bg-blue-50 border-4 border-black rounded-2xl">
-                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Stream / Sector</p>
-                        <p className="text-xl font-black italic">{currentUser.stream || 'GENERAL'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border-8 border-black rounded-[4rem] p-12 shadow-[20px_20px_0px_0px_rgba(0,208,90,1)] space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-green-100 border-4 border-black rounded-xl flex items-center justify-center text-2xl">⚡</div>
-                      <h3 className="text-2xl font-black uppercase italic">Registry Status</h3>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-green-50 border-4 border-black rounded-2xl">
-                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Knowledge Points (KP)</p>
-                        <p className="text-3xl font-black italic text-green-600">{currentUser.points} KP</p>
-                      </div>
-                      <div className="p-4 bg-green-50 border-4 border-black rounded-2xl">
-                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Registry State</p>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                          <p className="text-xl font-black italic uppercase">{currentUser.status}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {isLoggedIn && simulatedMessages.length > 0 && (
-              <div className="max-w-4xl mx-auto space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-yellow-400 border-4 border-black rounded-xl flex items-center justify-center text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">📩</div>
-                  <h3 className="text-4xl font-black uppercase italic tracking-tighter">National SMS Inbox</h3>
-                </div>
-                <div className="grid grid-cols-1 gap-6">
-                  {simulatedMessages.map(m => (
-                    <div key={m.id} className="bg-white p-8 rounded-[2.5rem] border-8 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center group hover:bg-blue-50 transition-all">
-                      <div className="space-y-2">
-                        <p className="text-xl font-bold italic leading-relaxed">{m.text}</p>
-                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{m.date} • National Gateway Dispatch</p>
-                      </div>
-                      <button 
-                        onClick={() => setSimulatedMessages(prev => prev.filter(msg => msg.id !== m.id))}
-                        className="w-12 h-12 flex items-center justify-center bg-gray-100 border-4 border-black rounded-xl hover:bg-red-100 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="max-w-7xl mx-auto px-4 mt-24">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-                {SUMMER_STATS.map((s, i) => (
-                  <div key={i} className="bg-white border-8 border-black rounded-[3.5rem] p-10 md:p-14 text-center shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center group hover:bg-gray-50 transition-all hover:-translate-y-2">
-                    <div className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center bg-gray-50 border-4 border-black rounded-[2rem] mb-8 group-hover:scale-110 transition-transform shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)]">
-                      {s.icon}
-                    </div>
-                    <h3 className="text-5xl md:text-7xl font-black italic mb-4" style={{ color: s.color }}>{s.value}</h3>
-                    <p className="text-[10px] md:text-sm font-black uppercase text-gray-500 tracking-[0.2em]">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
+        return <HomePortal onNavClick={handleNavClick} currentUser={currentUser} />;
     }
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden flex flex-col bg-blue-50 text-black">
-      {activeOralTopic && (
-        <div className="fixed inset-0 z-[7000] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 md:p-10">
-          <div className="w-full max-w-4xl h-full">
-            <LiveInterviewer 
-              topic={activeOralTopic} 
-              onComplete={(score) => {
-                setActiveOralTopic(null);
-                alert(`Assessment Complete! AI Score: ${score}/100`);
-              }}
-              onCancel={() => setActiveOralTopic(null)}
-            />
-          </div>
+    <div className={`min-h-screen ${currentLang === 'am' ? 'font-noto-amharic' : 'font-plus-jakarta'} bg-[#fafafa] text-black selection:bg-yellow-400 selection:text-black overflow-x-hidden`}>
+      {isInIframe && (
+        <div className="bg-black text-white py-2 px-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-4 border-b-4 border-yellow-400">
+           <span className="animate-pulse text-yellow-400">●</span>
+           <span>Sovereign Iframe Active: Biometric sync may be limited in preview.</span>
+           <button 
+             onClick={() => window.open(window.location.href, '_blank')}
+             className="ml-4 border-b-2 border-yellow-400 hover:text-yellow-400 transition-colors"
+           >
+             Go Standalone
+           </button>
         </div>
       )}
-      {activeExam && (
-        <ExamEngine 
-          exam={activeExam} 
-          onComplete={async (res) => { 
-            setUserResults([...userResults, res]); 
-            setActiveExam(null); 
-            setActiveView('performance');
-            if (currentUser && activeExam) {
-              const updatedCompleted = [...(currentUser.completedExams || []), activeExam.id];
-              const updatedEnrolled = (currentUser.enrolledExams || []).filter(id => id !== activeExam.id);
-              
-              const updatedUser = { 
-                ...currentUser, 
-                points: currentUser.points + res.score,
-                completedExams: Array.from(new Set(updatedCompleted)),
-                enrolledExams: updatedEnrolled
-              };
-              
-              setCurrentUser(updatedUser);
-              setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-              
-              try {
-                await dbService.saveExamResult({ ...res, studentId: currentUser.id });
-                await dbService.syncUser(updatedUser);
-              } catch (err) {
-                console.error("Sync Failure:", err);
-                // The state is updated locally, will retry on next interaction or reload
-              }
-            }
-          }} 
-          onCancel={() => setActiveExam(null)} 
-        />
-      )}
-      {viewingCourse && (
-        <CourseViewer 
-          course={viewingCourse} 
-          onClose={() => setViewingCourse(null)} 
-          language={currentLang} 
-          currentUser={currentUser}
-          onUserUpdate={(updatedUser) => {
-            setCurrentUser(updatedUser);
-            setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-          }}
-          onOpenTutor={(content, title, prompt) => {
-            setAiTutorContext({ content, title, prompt });
-            setActiveView('tutor');
-            setViewingCourse(null);
-          }}
-        />
-      )}
-      {!activeExam && !viewingCourse && (
-        <div className="flex min-h-screen bg-slate-50">
-          {isLoggedIn && currentUser?.role === 'student' && activeView !== 'admin' && activeView !== 'teacher' && (
-            <StudentSidebar 
-              activeView={activeView}
-              onNavClick={handleNavClick}
-              currentUser={currentUser}
-              isSidebarOpen={isStudentSidebarOpen}
-              setIsSidebarOpen={setIsStudentSidebarOpen}
-              isMobileMenuOpen={isStudentMobileMenuOpen}
-              setIsMobileMenuOpen={setIsStudentMobileMenuOpen}
-              onLogout={async () => { await auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); handleNavClick('home'); }}
+
+      {/* Main Portal Framework */}
+      <div className="flex min-h-screen">
+        {/* Navigation Layer */}
+        {isLoggedIn && !activeExam && (
+          <StudentSidebar 
+            activeView={activeView} 
+            onNavClick={handleNavClick} 
+            currentUser={currentUser!}
+            onLogout={handleLogout}
+            isSidebarOpen={isStudentSidebarOpen}
+            setIsSidebarOpen={setIsStudentSidebarOpen}
+            isMobileMenuOpen={isStudentMobileMenuOpen}
+            setIsMobileMenuOpen={setIsStudentMobileMenuOpen}
+          />
+        )}
+
+        {/* Global Action Layer */}
+        <div className={`flex-1 flex flex-col transition-all duration-500 ${isLoggedIn && !activeExam && isStudentSidebarOpen ? 'md:ml-80' : isLoggedIn && !activeExam ? 'md:ml-24' : ''}`}>
+          {activeExam ? (
+            <ExamEngine 
+              exam={activeExam} 
+              onComplete={handleExamComplete} 
+              onCancel={() => setActiveExam(null)} 
             />
-          )}
-          
-          <div className={`flex-1 flex flex-col transition-all duration-500 ${
-            isLoggedIn && currentUser?.role === 'student' && activeView !== 'admin' && activeView !== 'teacher' 
-              ? (isStudentSidebarOpen ? 'md:pl-80' : 'md:pl-24') 
-              : ''
-          }`}>
-            {activeView !== 'admin' && activeView !== 'teacher' && (
+          ) : (
+            <div className="flex flex-col min-h-screen">
+              {/* Header Layer */}
               <Header 
-                onNavClick={(view) => {
-                  handleNavClick(view);
-                  setIsStudentMobileMenuOpen(false);
-                }} 
                 activeView={activeView} 
+                onNavClick={handleNavClick} 
                 isLoggedIn={isLoggedIn} 
-                userRole={currentUser?.role} 
-                onLogout={async () => { await auth.signOut(); setIsLoggedIn(false); setCurrentUser(null); handleNavClick('home'); }} 
-                onLoginClick={() => handleNavClick('login')} 
-                currentLang={currentLang} 
-                onLangChange={handleLangChange} 
-                t={t} 
-                accessibilitySettings={{}} 
-                onAccessibilityChange={() => {}} 
-                isOnline={isOnline} 
+                userRole={currentUser?.role}
+                onLogout={handleLogout}
+                onLoginClick={() => setActiveView('login')}
+                currentLang={currentLang}
+                onLangChange={handleLangChange}
+                t={(key) => TRANSLATIONS[currentLang][key] || key}
+                isOnline={true}
                 onSearch={handleGlobalSearch}
+                accessibilitySettings={{}}
+                onAccessibilityChange={() => {}}
               />
-            )}
 
-            {dbError && (
-              <div className="bg-red-500 text-white p-4 text-center font-black uppercase text-xs animate-pulse flex flex-col md:flex-row items-center justify-center gap-4 sticky top-0 z-[100]">
-                <span className="flex items-center gap-2">
-                  <span className="animate-ping">⚠️</span> {dbError}
-                </span>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={async () => {
-                      const success = await reconnectDb();
-                      if (success) {
-                        window.location.reload();
-                      } else {
-                        alert("Reconnection failed. Please check your internet connection.");
-                      }
-                    }} 
-                    className="bg-white text-red-500 px-3 py-1 rounded font-black hover:bg-red-100 transition-colors"
-                  >
-                    RECONNECT SYNC
-                  </button>
-                  <a 
-                    href={window.location.href} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="bg-black text-white px-3 py-1 rounded font-black hover:bg-gray-800 transition-colors border border-white"
-                  >
-                    OPEN IN NEW TAB (STABLE)
-                  </a>
+              {/* Dynamic Content Layer */}
+              <main className={`flex-1 p-4 md:p-8 relative ${isLoggedIn ? 'pt-24' : ''}`}>
+                <div className="max-w-7xl mx-auto">
+                  {renderContent()}
                 </div>
-              </div>
-            )}
+              </main>
 
-            <main className={`flex-grow w-full mx-auto min-w-0 flex flex-col overflow-x-hidden ${
-              activeView === 'admin' || (isLoggedIn && currentUser?.role === 'student' && activeView !== 'teacher') 
-                ? 'max-w-none p-0' 
-                : 'max-w-screen-2xl px-4 py-16'
-            }`}>
-              {isLoggedIn && currentUser?.role === 'student' && activeView !== 'teacher' && (
-                 <button 
-                   onClick={() => setIsStudentMobileMenuOpen(true)}
-                   className="md:hidden fixed bottom-8 right-8 z-[7000] w-16 h-16 bg-blue-600 text-white rounded-full border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center font-black"
-                 >
-                   <Menu className="w-8 h-8" />
-                 </button>
-              )}
-              
-              <div className={`${isLoggedIn && currentUser?.role === 'student' && activeView !== 'teacher' ? 'p-10' : ''}`}>
-                {renderContent()}
-              </div>
-            </main>
-            
-      {showProfilePrompt && currentUser && (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[999] flex items-center justify-center p-6 sm:p-12 overflow-y-auto overflow-x-hidden">
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="bg-white border-[10px] border-black rounded-[5rem] p-12 md:p-20 max-w-4xl w-full space-y-12 relative shadow-[30px_30px_0px_0px_rgba(59,130,246,1)]"
-              >
-                <div className="space-y-6 text-center">
-                  <div className="w-32 h-32 bg-yellow-400 border-8 border-black rounded-[2.5rem] flex items-center justify-center text-6xl mx-auto shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] animate-bounce-slow">
-                    🛡️
-                  </div>
-                  <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-tight">Identity Registry <br/><span className="text-blue-600">Verification Required</span></h2>
-                  <p className="text-xl font-bold text-gray-500 uppercase italic">Your sovereign profile is missing critical metadata.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="p-8 bg-blue-50 border-4 border-black rounded-[3rem] space-y-4">
-                    <h4 className="text-xl font-black uppercase italic">Sovereign Gender</h4>
-                    <select 
-                      className="w-full p-4 border-4 border-black rounded-2xl font-black text-sm"
-                      value={currentUser.gender || ''}
-                      onChange={(e) => {
-                        const gender = e.target.value as any;
-                        const updated = {...currentUser, gender};
-                        setCurrentUser(updated);
-                        dbService.syncUser(updated);
-                      }}
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div className="p-8 bg-purple-50 border-4 border-black rounded-[3rem] space-y-4">
-                    <h4 className="text-xl font-black uppercase italic">Birth Protocol (DOB)</h4>
-                    <input 
-                      type="date"
-                      className="w-full p-4 border-4 border-black rounded-2xl font-black text-sm"
-                      value={currentUser.dob || ''}
-                      onChange={(e) => {
-                        const dob = e.target.value;
-                        const updated = {...currentUser, dob};
-                        setCurrentUser(updated);
-                        dbService.syncUser(updated);
-                      }}
-                    />
-                  </div>
-                  <div className="col-span-full p-8 bg-green-50 border-4 border-black rounded-[3rem] space-y-4">
-                    <h4 className="text-xl font-black uppercase italic">Student ID Assignment</h4>
-                    <input 
-                      type="text"
-                      placeholder="Enter Student ID (e.g. SID-2024-XXXX)"
-                      className="w-full p-4 border-4 border-black rounded-2xl font-black text-sm"
-                      value={currentUser.studentIdNumber || ''}
-                      onChange={(e) => {
-                        const sid = e.target.value;
-                        const updated = {...currentUser, studentIdNumber: sid};
-                        setCurrentUser(updated);
-                        dbService.syncUser(updated);
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-gray-100 p-8 rounded-[3rem] border-4 border-black border-dashed">
-                   <p className="text-sm font-bold text-gray-500 uppercase tracking-widest text-center italic">
-                     By verifying these credentials, you synchronize your academic footprint with the IFTU LMS Sovereign Gateway.
-                   </p>
-                </div>
-
-                <button 
-                  onClick={() => {
-                    if (currentUser.gender !== 'Other' && currentUser.dob !== '2000-01-01' && currentUser.studentIdNumber) {
-                      setShowProfilePrompt(false);
-                    } else {
-                      // Allow closing but maybe warn? Or just close as user requested
-                      setShowProfilePrompt(false);
-                    }
-                  }}
-                  className="w-full py-8 bg-black text-white border-8 border-black rounded-[3rem] font-black uppercase italic text-3xl shadow-[15px_15px_0px_0px_rgba(34,197,94,1)] hover:translate-y-2 hover:shadow-none transition-all"
+              {/* Mobile Profile Prompt Layer */}
+              {isLoggedIn && showProfilePrompt && (
+                <motion.div 
+                  initial={{ y: 100 }}
+                  animate={{ y: 0 }}
+                  className="fixed bottom-0 left-0 right-0 p-6 z-[60] md:hidden"
                 >
-                  Continue to Portal →
-                </button>
-              </motion.div>
+                  <div className="bg-black text-white p-8 rounded-[3rem] border-8 border-yellow-400 shadow-[0_-20px_50px_rgba(0,0,0,0.3)] space-y-6">
+                    <div className="flex items-center gap-6">
+                      <img src={currentUser?.photo} className="w-16 h-16 rounded-2xl border-4 border-white" alt="" />
+                      <div>
+                        <h4 className="font-black uppercase italic leading-none">{currentUser?.name}</h4>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase mt-2">Active Sovereign Session</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => { setActiveView('profile'); setShowProfilePrompt(false); }}
+                      className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs"
+                    >
+                      Continue to Profile →
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Footer Layer */}
+              <footer className="bg-white text-black py-12 px-8 mt-20 text-center relative overflow-hidden border-t-8 border-black">
+                 <div className="flex flex-col items-center gap-8">
+                   <p className="text-[12px] md:text-[14px] font-black uppercase tracking-[0.4em] text-black/60 flex items-center justify-center flex-wrap gap-x-2">
+                     <span>© 2026</span>
+                     <span className="text-[#009b44]">IFTU</span>
+                     <span className="text-[#ffcd00]">NATIONAL</span>
+                     <span className="text-[#ef3340]">DIGITAL</span>
+                     <span className="text-[#009b44]">CENTER</span>.
+                   </p>
+                   
+                   <div className="flex flex-row flex-wrap items-center justify-center gap-4 w-full max-w-6xl">
+                     <a href="https://www.youtube.com/@soof-UmarMedia256" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between flex-1 min-w-[280px] max-w-[320px] pl-6 pr-3 py-3 bg-[#fff1f1] border-4 border-[#ef3340]/30 rounded-full transition-all group hover:scale-105 active:scale-95">
+                       <span className="text-[#ef3340] font-black uppercase text-[10px] md:text-xs tracking-widest">YouTube</span>
+                       <div className="w-10 h-10 flex items-center justify-center bg-[#ef3340] rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
+                         <Play className="w-5 h-5 text-white" />
+                       </div>
+                     </a>
+                     <a href="https://ais-dev-zyaq3mnjmkd55f6qamhtvh-107893339879.europe-west2.run.app" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-4 flex-1 min-w-[280px] max-w-[320px] px-6 py-4 bg-[#f0faf5] border-4 border-[#009b44]/20 rounded-full transition-all group hover:scale-105 active:scale-95">
+                       <div className="w-3 h-3 bg-[#009b44] rounded-full animate-pulse shadow-[0_0_10px_rgba(0,155,68,0.5)]"></div>
+                       <span className="text-[#009b44] font-black uppercase text-[10px] md:text-xs tracking-[0.2em] group-hover:underline">Live Cloud Run</span>
+                     </a>
+                   </div>
+                 </div>
+              </footer>
             </div>
           )}
-          <footer className="bg-white text-black py-12 px-8 mt-20 text-center relative overflow-hidden border-t-8 border-black">
-             <div className="flex flex-col items-center gap-8">
-               <p className="text-[12px] md:text-[14px] font-black uppercase tracking-[0.4em] text-black/60 flex items-center justify-center flex-wrap gap-x-2">
-                 <span>© 2026</span>
-                 <span className="text-[#009b44]">IFTU</span>
-                 <span className="text-[#ffcd00]">NATIONAL</span>
-                 <span className="text-[#ef3340]">DIGITAL</span>
-                 <span className="text-[#009b44]">CENTER</span>.
-               </p>
-               
-               <div className="flex flex-row flex-wrap items-center justify-center gap-4 w-full max-w-6xl">
-                 {/* YouTube Action */}
-                 <a 
-                   href="https://www.youtube.com/@soof-UmarMedia256" 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   className="flex items-center justify-between flex-1 min-w-[280px] max-w-[320px] pl-6 pr-3 py-3 bg-[#fff1f1] border-4 border-[#ef3340]/30 rounded-full transition-all group hover:scale-105 active:scale-95"
-                 >
-                   <span className="text-[#ef3340] font-black uppercase text-[10px] md:text-xs tracking-widest">YouTube</span>
-                   <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-[#ef3340] rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
-                     <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 fill-white" xmlns="http://www.w3.org/2000/svg">
-                       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                     </svg>
-                   </div>
-                 </a>
-
-
-                 {/* Cloud Run Action */}
-                 <a 
-                   href="https://ais-dev-zyaq3mnjmkd55f6qamhtvh-107893339879.europe-west2.run.app"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   className="flex items-center justify-center gap-4 flex-1 min-w-[280px] max-w-[320px] px-6 py-4 bg-[#f0faf5] border-4 border-[#009b44]/20 rounded-full transition-all group hover:scale-105 active:scale-95"
-                 >
-                   <div className="w-3 h-3 bg-[#009b44] rounded-full animate-pulse shadow-[0_0_10px_rgba(0,155,68,0.5)]"></div>
-                   <span className="text-[#009b44] font-black uppercase text-[10px] md:text-xs tracking-[0.2em] group-hover:underline">Live Cloud Run</span>
-                 </a>
-               </div>
-             </div>
-          </footer>
         </div>
       </div>
-    )}
     </div>
   );
 };

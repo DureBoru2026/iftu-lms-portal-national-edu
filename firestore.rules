@@ -146,6 +146,14 @@ service cloud.firestore {
              (!('tags' in data) || data.tags is list);
     }
 
+    function isValidNews(data) {
+      return data.keys().hasAll(['id', 'title', 'content', 'date']) &&
+             data.id is string &&
+             data.title is string && data.title.size() <= 200 &&
+             data.content is string && data.content.size() <= 10000 &&
+             data.date is string;
+    }
+
     function isValidEnrollment(data) {
       return data.keys().hasAll(['id', 'userId', 'courseId', 'enrolledAt', 'status']) &&
              data.id is string && data.userId is string && data.courseId is string &&
@@ -212,7 +220,7 @@ service cloud.firestore {
     }
 
     match /courses/{courseId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create: if isSignedIn() && (isAdmin() || isTeacher()) && isValidCourse(incoming());
       allow update: if isSignedIn() && (
         isAdmin() || 
@@ -229,8 +237,10 @@ service cloud.firestore {
     }
 
     match /news/{newsId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && isAdmin();
+      allow read: if true;
+      allow create: if isSignedIn() && isAdmin() && isValidNews(incoming());
+      allow update: if isSignedIn() && isAdmin() && isValidNews(incoming());
+      allow delete: if isAdmin();
     }
 
     match /exam_results/{resultId} {

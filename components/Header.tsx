@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Sun, Moon, Search } from 'lucide-react';
 import { Language, User } from '../types';
 import { NotificationBell } from './NotificationBell';
@@ -68,8 +69,9 @@ const Header: React.FC<HeaderProps> = ({
 
   const navConfig = [
     { id: 'home', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
-    { id: 'courses', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
+    { id: 'about', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
     { id: 'news', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
+    { id: 'courses', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
     { id: 'mediahub', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
     { id: 'exams', roles: ['student'] },
     { id: 'assignments', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator'] },
@@ -82,7 +84,6 @@ const Header: React.FC<HeaderProps> = ({
     { id: 'teacher', roles: ['teacher', 'teaching_assistant', 'content_creator', 'admin'] },
     { id: 'locator', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
     { id: 'guide', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
-    { id: 'about', roles: ['student', 'teacher', 'admin', 'teaching_assistant', 'content_creator', 'guest_user'] },
   ];
 
   const currentUserMock = isLoggedIn ? { role: userRole } as User : { role: 'guest_user' } as User;
@@ -108,23 +109,28 @@ const Header: React.FC<HeaderProps> = ({
             <I2LMSLogo onClick={() => handleNav('home')} size="md" />
 
             {/* Desktop Navigation (Moved to Left) */}
-            <nav className="hidden xl:flex items-center bg-gray-50 border-4 border-black rounded-2xl px-4 h-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <div className="flex items-center gap-2">
-                {navConfig.slice(0, 10).map((item) => (
-                  <RoleGuard 
-                    key={item.id} 
-                    currentUser={currentUserMock} 
-                    allowedRoles={item.roles as any}
+            <nav className="hidden xl:flex items-center gap-2">
+              {navConfig.slice(0, 10).map((item) => (
+                <RoleGuard 
+                  key={item.id} 
+                  currentUser={currentUserMock} 
+                  allowedRoles={item.roles as any}
+                >
+                  <button 
+                    onClick={() => handleNav(item.id)} 
+                    className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
                   >
-                    <button 
-                      onClick={() => handleNav(item.id)} 
-                      className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-all ${activeView === item.id ? 'bg-black text-white' : 'text-gray-500 hover:text-black hover:bg-gray-200'}`}
-                    >
-                      {t(item.id)}
-                    </button>
-                  </RoleGuard>
-                ))}
-              </div>
+                    <span className="relative z-10">{t(item.id)}</span>
+                    {activeView === item.id && (
+                      <motion.div 
+                        layoutId="nav-glow"
+                        className="absolute inset-0 bg-yellow-400/20 blur-md"
+                      />
+                    )}
+                    <div className={`absolute bottom-0 left-0 h-1 bg-black transition-all duration-300 ${activeView === item.id ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
+                  </button>
+                </RoleGuard>
+              ))}
             </nav>
 
             {/* Search Engine Integration */}

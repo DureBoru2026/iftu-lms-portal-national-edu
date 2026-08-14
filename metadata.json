@@ -1,7 +1,7 @@
 {
-  "name": "IFTU LMS - National Digital Sovereign Education Center",
+  "name": "IFTU LMS - Sovereign Learning Platform",
   "short_name": "IFTU LMS",
-  "description": "IFTU LMS - National Digital Sovereign Education Center. A professional educational platform aligned with national standards for secondary and TVET education.",
+  "description": "IFTU LMS - Sovereign Learning Platform. A digital education gateway designed for secondary schools and TVET institutes in Ethiopia.",
   "requestFramePermissions": [
     "camera",
     "microphone",
