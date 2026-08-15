@@ -6,7 +6,8 @@ import {
   Menu, X, ChevronRight, ShieldCheck,
   LayoutDashboard, LogOut, ArrowRight, Book,
   TrendingUp, Settings, Plus, Search,
-  Bell, Activity, Users, Sparkles, Rocket, ExternalLink
+  Bell, Activity, Users, Sparkles, Rocket, ExternalLink,
+  Edit, Trash2
 } from 'lucide-react';
 import { User, Exam, Question, Grade, Stream, QuestionType, Course, Lesson, Difficulty, Assignment, AssignmentSubmission, EducationLevel, ExamType, CourseMaterial } from '../types';
 import { parseExamDocument, generateExamQuestions, parseExamFromDocument, generateQuizFromLessonContent } from '../services/geminiService';
@@ -1545,7 +1546,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       {/* Main Content Area */}
       <main 
         className={`flex-1 transition-all duration-500 p-4 md:p-8 lg:p-12 min-w-0 flex flex-col w-full max-w-full overflow-x-hidden ${
-          isSidebarOpen ? 'md:ml-80' : 'md:ml-24'
+          isSidebarOpen ? 'lg:ml-80 ml-0 md:ml-24' : 'md:ml-24 ml-0'
         }`}
       >
         {/* Mobile Header */}
@@ -1672,7 +1673,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {exams.map(ex => (
-              <div key={ex.id} className="bg-white p-10 rounded-[4rem] border-8 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group">
+              <div key={ex.id} className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[4rem] border-8 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] md:shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group">
                 <div className="space-y-6">
                   <div className="flex justify-between items-start">
                     <div className="flex flex-wrap gap-2">
@@ -1693,7 +1694,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     </div>
                     <span className="text-xs font-black text-gray-400 uppercase">{ex.durationMinutes}m</span>
                   </div>
-                  <h4 className="text-4xl font-black uppercase italic tracking-tighter leading-none group-hover:text-blue-700 transition-all">{ex.title}</h4>
+                  <h4 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter leading-none group-hover:text-blue-700 transition-all">{ex.title}</h4>
                   <div className="flex flex-wrap gap-2">
                     {ex.categories?.map(cat => (
                       <span key={cat} className="bg-gray-100 text-[8px] font-black uppercase px-2 py-1 rounded border border-black">{cat}</span>
@@ -1701,7 +1702,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   </div>
                 </div>
                 <div className="mt-10 pt-8 border-t-4 border-black flex justify-between items-center">
-                  <span className="text-2xl font-black">{ex.questions.length} Items</span>
+                  <span className="text-xl md:text-2xl font-black">{ex.questions.length} Items</span>
                   <div className="flex gap-4">
                     <button 
                       onClick={() => {
@@ -1710,11 +1711,18 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         setIsCreating(true);
                         setWizardStep(1);
                       }} 
-                      className="w-12 h-12 bg-blue-50 border-4 border-black rounded-xl text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
+                      className="w-12 h-12 bg-blue-600 text-white border-4 border-black rounded-xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 active:shadow-none transition-all"
+                      title="Edit Exam"
                     >
-                      ✏️
+                      <Edit size={20} />
                     </button>
-                    <button onClick={() => onDeleteExam(ex.id)} className="w-12 h-12 bg-rose-50 border-4 border-black rounded-xl text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all">🗑️</button>
+                    <button 
+                      onClick={() => onDeleteExam(ex.id)} 
+                      className="w-12 h-12 bg-rose-600 text-white border-4 border-black rounded-xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 active:shadow-none transition-all"
+                      title="Delete Exam"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1738,7 +1746,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {courses.map(course => (
-              <div key={course.id} className="bg-white p-10 rounded-[4rem] border-8 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group">
+              <div key={course.id} className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[4rem] border-8 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] md:shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between group">
                 <div className="space-y-6">
                   <div className="flex justify-between items-start">
                     <span className={`px-4 py-1 rounded-xl text-[10px] font-black uppercase border-2 border-black bg-purple-100`}>
@@ -1746,11 +1754,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     </span>
                     <span className="text-xs font-black text-gray-400 uppercase">{course.lessons.length} Lessons</span>
                   </div>
-                  <h4 className="text-4xl font-black uppercase italic tracking-tighter leading-none group-hover:text-purple-700 transition-all">{course.title}</h4>
+                  <h4 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter leading-none group-hover:text-purple-700 transition-all">{course.title}</h4>
                   <p className="text-sm font-bold text-gray-500 italic line-clamp-2">{course.description}</p>
                 </div>
                 <div className="mt-10 pt-8 border-t-4 border-black flex justify-between items-center">
-                  <span className="text-2xl font-black">{course.points} XP</span>
+                  <span className="text-xl md:text-2xl font-black">{course.points} XP</span>
                   <div className="flex gap-4">
                     <button 
                       onClick={() => {
@@ -1758,11 +1766,18 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         setEditingCourseId(course.id);
                         setIsCreatingCourse(true);
                       }} 
-                      className="w-12 h-12 bg-purple-50 border-4 border-black rounded-xl text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all"
+                      className="w-12 h-12 bg-purple-600 text-white border-4 border-black rounded-xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 active:shadow-none transition-all"
+                      title="Edit Course"
                     >
-                      ✏️
+                      <Edit size={20} />
                     </button>
-                    <button onClick={() => onDeleteCourse(course.id)} className="w-12 h-12 bg-rose-50 border-4 border-black rounded-xl text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all">🗑️</button>
+                    <button 
+                      onClick={() => onDeleteCourse(course.id)} 
+                      className="w-12 h-12 bg-rose-600 text-white border-4 border-black rounded-xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 active:shadow-none transition-all"
+                      title="Delete Course"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                   </div>
                 </div>
               </div>

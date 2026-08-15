@@ -1261,6 +1261,21 @@ const App: React.FC = () => {
                   </div>
                 )}
                 
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button 
+                    onClick={() => { setLoginEmail('teacher@iftu.edu.et'); setLoginPassword('demo'); }}
+                    className="flex-1 p-4 bg-orange-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-orange-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>👨‍🏫</span> Barsiisaa (Teacher) Demo
+                  </button>
+                  <button 
+                    onClick={() => { setLoginEmail('student@iftu.edu.et'); setLoginPassword('demo'); }}
+                    className="flex-1 p-4 bg-green-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-green-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>🎓</span> Barataa (Student) Demo
+                  </button>
+                </div>
+
                 <div className="relative group">
                   <input 
                     type="email" 
@@ -1281,9 +1296,6 @@ const App: React.FC = () => {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                   />
-                  <p className="text-[10px] font-black text-gray-400 uppercase mt-4 text-left ml-4 italic">
-                    Demo Accounts: Use 'demo' as password
-                  </p>
                 </div>
                 
                 <button 

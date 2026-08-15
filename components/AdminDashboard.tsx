@@ -1913,9 +1913,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeleteUser = (id: string) => {
-    onDeleteUser(id);
-    setUsers(prev => prev.filter(u => u.id !== id));
-    showNotification("Identity purged from National Registry.", 'info');
+    if (window.confirm("CRITICAL WARNING: Are you sure you want to PERMANENTLY PURGE this identity? This action cannot be undone and all associated records will be orphaned.")) {
+      onDeleteUser(id);
+      setUsers(prev => prev.filter(u => u.id !== id));
+      showNotification("Identity purged from National Registry.", 'info');
+    }
   };
 
   // CURRICULUM CRUD LOGIC
@@ -2199,7 +2201,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Main Content Area */}
       <main 
         className={`flex-1 transition-all duration-500 p-4 md:p-12 min-w-0 flex flex-col w-full max-w-full overflow-x-hidden ${
-          isSidebarOpen ? 'lg:ml-80' : 'md:ml-24'
+          isSidebarOpen ? 'lg:ml-80 ml-0 md:ml-24' : 'md:ml-24 ml-0'
         }`}
       >
         {/* Mobile Header */}
@@ -2997,7 +2999,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {submissions.map(s => {
                 const assignment = assignments.find(a => a.id === s.assignmentId);
                 return (
-                  <div key={s.id} className="p-8 space-y-4 bg-white hover:bg-gray-50 transition-colors">
+                  <div key={s.id} className="p-4 md:p-8 space-y-4 bg-white hover:bg-gray-50 transition-colors">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-black italic text-lg">{s.studentName}</p>
@@ -3113,10 +3115,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
              </div>
           </div>
-                  <div className="bg-white border-6 border-black rounded-[2.5rem] overflow-hidden shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] mb-8">
+                  <div className="bg-white border-6 border-black rounded-[2.5rem] shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] mb-8">
              {/* Desktop Table View */}
-             <div className="overflow-x-auto w-full hidden md:block">
-               <table className="w-full text-left border-collapse">
+             <div className="overflow-x-auto w-full hidden lg:block custom-scrollbar">
+               <table className="w-full text-left border-collapse min-w-[1000px]">
                  <thead className="bg-black text-white border-b-6 border-black font-black uppercase text-[10px] tracking-widest text-gray-300">
                     <tr>
                       <th className="p-6 cursor-pointer hover:text-blue-400 transition-colors" onClick={() => requestUserSort('name')}>
@@ -3194,6 +3196,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 </>
                               )}
                               <button 
+                                onClick={() => handleResetUser(u.id)}
+                                className="p-2 bg-rose-500 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all"
+                                title="Reset Ledger (Purge Points/Progress)"
+                              >
+                                <RefreshCw className="w-4 h-4" />
+                              </button>
+                              <button 
                                 onClick={() => handleSendPasswordReset(u.email || "")}
                                 className="p-2 bg-amber-500 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 transition-all"
                                 title="Reset Password"
@@ -3222,56 +3231,105 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </table>
             </div>
 
-            {/* Mobile Card View */}
+            {/* Mobile Card View (Mobile & Tablet) */}
             <div className="lg:hidden divide-y-4 divide-black">
               {sortedUsers.map(u => (
-                <div key={u.id} className="p-4 space-y-4 bg-white hover:bg-blue-50 transition-all">
+                <div key={u.id} className="p-6 space-y-6 bg-white hover:bg-blue-50 transition-all">
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <img src={u.photo} className="w-16 h-16 rounded-xl border-2 border-black bg-gray-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" alt="" />
-                      {u.status === 'active' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-black rounded-full"></div>}
+                      <img src={u.photo} className="w-20 h-20 rounded-2xl border-4 border-black bg-gray-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" alt="" />
+                      {u.status === 'active' && <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 border-2 border-black rounded-full"></div>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
-                        <p className="text-xl font-black italic truncate tracking-tighter leading-none">{u.name}</p>
-                        <span className="text-[7px] font-black text-blue-600 bg-blue-50 px-1 py-0.5 rounded-md border border-black">#{u.sovereignIndex}</span>
+                        <p className="text-2xl font-black italic truncate tracking-tighter leading-none">{u.name}</p>
+                        <span className="text-[8px] font-black text-blue-600 bg-blue-50 px-1.5 py-1 rounded-md border-2 border-black">#{u.sovereignIndex}</span>
                       </div>
-                      <p className="text-[9px] text-gray-500 font-bold truncate mt-1">{u.email}</p>
-                      <div className="flex gap-1.5 mt-2">
-                        <span className={`px-2 py-0.5 rounded-md border-2 border-black text-[6px] uppercase font-black ${u.role === 'admin' ? 'bg-black text-white' : u.role === 'teacher' ? 'bg-orange-400' : 'bg-blue-100'}`}>
+                      <p className="text-[10px] text-gray-500 font-bold truncate mt-1">{u.email}</p>
+                      <div className="flex gap-2 mt-2">
+                        <span className={`px-3 py-1 rounded-lg border-2 border-black text-[7px] uppercase font-black ${u.role === 'admin' ? 'bg-black text-white' : u.role === 'teacher' ? 'bg-orange-400' : 'bg-blue-100'}`}>
                           {u.role}
                         </span>
+                        <div className="flex items-center gap-1">
+                          <div className={`w-2 h-2 rounded-full border-2 border-black ${u.status === 'active' ? 'bg-green-500' : 'bg-rose-500'}`}></div>
+                          <span className="text-[7px] font-black uppercase tracking-widest">{u.status}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-2xl border-2 border-black">
-                    <div className="space-y-0.5">
-                      <p className="text-[6px] font-black uppercase text-gray-400">NID</p>
-                      <p className="text-[10px] font-black italic truncate">{u.nid || 'N/A'}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-3xl border-2 border-black shadow-inner">
+                    <div className="space-y-1">
+                      <p className="text-[7px] font-black uppercase text-gray-400 tracking-widest">National ID (NID)</p>
+                      <p className="text-[12px] font-black italic truncate bg-white p-2 rounded-lg border border-black/10">{u.nid || 'NOT_ASSIGNED'}</p>
                     </div>
-                    <div className="space-y-0.5">
-                      <p className="text-[6px] font-black uppercase text-gray-400">SID</p>
-                      <p className="text-[10px] font-black italic text-blue-600 truncate">{u.studentIdNumber || 'N/A'}</p>
+                    <div className="space-y-1">
+                      <p className="text-[7px] font-black uppercase text-gray-400 tracking-widest">Student ID (SID)</p>
+                      <p className="text-[12px] font-black italic text-blue-600 truncate bg-white p-2 rounded-lg border border-black/10">{u.studentIdNumber || 'N/A'}</p>
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2">
-                    {u.role === 'student' && (
-                       <>
-                         <button onClick={() => setSelectedStudentForQR(u)} className="p-2 bg-black text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(249,115,22,1)]"><QrCode size={14} /></button>
-                         <button onClick={() => setShowTranscriptForUser(u)} className="p-2 bg-purple-600 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><FileText size={14} /></button>
-                       </>
-                    )}
-                    <button 
-                      onClick={() => handleSendPasswordReset(u.email || "")} 
-                      className="p-2 bg-amber-500 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                      title="Reset Access"
-                    >
-                      <Key size={14} />
-                    </button>
-                    <button onClick={() => openUserModal(u)} className="p-2 bg-blue-600 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><Edit size={14} /></button>
-                    <button onClick={() => handleDeleteUser(u.id)} className="p-2 bg-rose-600 text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><Trash2 size={14} /></button>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-[2px] flex-1 bg-black/10"></div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">Identity Commands</p>
+                      <div className="h-[2px] flex-1 bg-black/10"></div>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      {u.role === 'student' && (
+                         <>
+                           <button 
+                             onClick={() => setSelectedStudentForQR(u)} 
+                             className="p-3 bg-black text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(249,115,22,1)] active:translate-y-1 transition-all"
+                             title="NID QR"
+                           >
+                             <QrCode size={18} />
+                           </button>
+                           <button 
+                             onClick={() => setShowTranscriptForUser(u)} 
+                             className="p-3 bg-purple-600 text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                             title="Transcript"
+                           >
+                             <FileText size={18} />
+                           </button>
+                           <button 
+                             onClick={() => setSelectedStudentForProgress(u)} 
+                             className="p-3 bg-green-600 text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                             title="Progress"
+                           >
+                             <TrendingUp size={18} />
+                           </button>
+                         </>
+                      )}
+                      <button 
+                        onClick={() => handleResetUser(u.id)} 
+                        className="p-3 bg-rose-500 text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                        title="Reset Ledger"
+                      >
+                        <RefreshCw size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleSendPasswordReset(u.email || "")} 
+                        className="p-3 bg-amber-500 text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                        title="Reset Password"
+                      >
+                        <Key size={18} />
+                      </button>
+                      <button 
+                        onClick={() => openUserModal(u)} 
+                        className="p-3 bg-blue-600 text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                        title="Edit Profile"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(u.id)} 
+                        className="p-3 bg-rose-600 text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all"
+                        title="Purge Identity"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
