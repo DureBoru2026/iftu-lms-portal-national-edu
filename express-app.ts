@@ -1,8 +1,45 @@
 import express from "express";
 import path from "path";
+import { generateExamsForGradesServer, askTutorServer, generateExamQuestionsServer } from "./gemini-server";
 
 const app = express();
 app.use(express.json());
+
+// API: Generate Questions via Gemini
+app.post("/api/generate-questions", async (req, res) => {
+  const { subject, topic, difficulty, questionTypes, count } = req.body;
+  try {
+    const data = await generateExamQuestionsServer(subject, topic, difficulty, questionTypes, count);
+    res.json(data);
+  } catch (error: any) {
+    console.error("Gemini Server Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API: Ask Tutor via Gemini
+app.post("/api/ask-tutor", async (req, res) => {
+  const { question, language, context, attachment } = req.body;
+  try {
+    const data = await askTutorServer(question, language, context, attachment);
+    res.json({ answer: data });
+  } catch (error: any) {
+    console.error("Gemini Server Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API: Generate Exam via Gemini
+app.post("/api/generate-exam", async (req, res) => {
+  const { grade, subject } = req.body;
+  try {
+    const data = await generateExamsForGradesServer(grade, subject);
+    res.json(data);
+  } catch (error: any) {
+    console.error("Gemini Server Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // API: Validate Exam
 app.post("/api/validate-exam", (req, res) => {

@@ -831,9 +831,9 @@ const App: React.FC = () => {
         ((targetEmail === 'admin' || targetEmail === 'admin@iftu.edu.et') && u.role === 'admin') ||
         ((targetEmail === 'teacher' || targetEmail === 'teacher@iftu.edu.et' || targetEmail === 'demoteach') && (u.role === 'teacher' || u.role === 'teaching_assistant')) ||
         ((targetEmail === 'student' || targetEmail === 'student@iftu.edu.et' || targetEmail === 'demostu' || targetEmail === 'barataa') && u.role === 'student')
-      ) || (targetEmail.includes('admin') ? (users.find(u => u.role === 'admin') || INITIAL_USERS.find(u => u.role === 'admin')) : undefined);
+      );
 
-      if (foundLocalUser && (isDemoPassword || isDemoEmail || targetPassword === foundLocalUser.nid || targetPassword === 'demo' || targetPassword.length < 15)) {
+      if (foundLocalUser && targetEmail !== "" && (isDemoPassword || isDemoEmail || targetPassword === foundLocalUser.nid || targetPassword === 'demo' || targetPassword.length < 15)) {
         setIsDemoSession(true);
         setIsLoggedIn(true);
         setCurrentUser(foundLocalUser);
@@ -1263,13 +1263,13 @@ const App: React.FC = () => {
                 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button 
-                    onClick={() => { setLoginEmail('teacher@iftu.edu.et'); setLoginPassword('demo'); }}
+                    onClick={() => handleLogin(undefined, 'teacher@iftu.edu.et', 'demo')}
                     className="flex-1 p-4 bg-orange-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-orange-200 transition-all flex items-center justify-center gap-2"
                   >
                     <span>👨‍🏫</span> Barsiisaa (Teacher) Demo
                   </button>
                   <button 
-                    onClick={() => { setLoginEmail('student@iftu.edu.et'); setLoginPassword('demo'); }}
+                    onClick={() => handleLogin(undefined, 'student@iftu.edu.et', 'demo')}
                     className="flex-1 p-4 bg-green-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-green-200 transition-all flex items-center justify-center gap-2"
                   >
                     <span>🎓</span> Barataa (Student) Demo
