@@ -824,34 +824,26 @@ const App: React.FC = () => {
     
     try {
       // 1. Check for Demo & Local Accounts first (Bypass network errors or password length constraints)
-      const isDemoPassword = targetPassword.toLowerCase() === 'demo' || targetPassword === '';
-      const isDemoKeyword = ['admin', 'teacher', 'student', 'demoteach', 'demostu', 'barataa'].includes(targetEmail);
-      const demoEmails = ['teacher@iftu.edu.et', 'student@iftu.edu.et', 'admin@iftu.edu.et', 'jemalfano030@gmail.com', '5890385378017045@students.iftu.edu.et', 'barataa@iftu.edu.et', 'demoteach', 'demostu'];
+      const foundLocalUser = INITIAL_USERS.find(u => 
+        u.email.toLowerCase() === targetEmail || 
+        (u.nid && u.nid.toLowerCase() === targetEmail) ||
+        u.id.toLowerCase() === targetEmail
+      );
+      const isDemoPassword = targetPassword.toLowerCase() === 'demo';
+      const isDemoKeyword = ['demoteach', 'demostu', 'barataa'].includes(targetEmail);
+      const demoEmails = ['teacher@iftu.edu.et', 'student@iftu.edu.et', 'admin@iftu.edu.et', 'jemalfano030@gmail.com', 'barataa@iftu.edu.et', 'demoteach', 'demostu'];
       const isDemoEmail = demoEmails.includes(targetEmail) || isDemoKeyword;
 
-      // Find local user matching email, nid, or role keyword
-      const foundLocalUser = users.find(u => 
-        u.email.toLowerCase() === targetEmail || 
-        u.nid?.toLowerCase() === targetEmail ||
-        ((targetEmail === 'admin' || targetEmail === 'admin@iftu.edu.et') && u.role === 'admin') ||
-        ((targetEmail === 'teacher' || targetEmail === 'teacher@iftu.edu.et' || targetEmail === 'demoteach') && (u.role === 'teacher' || u.role === 'teaching_assistant')) ||
-        ((targetEmail === 'student' || targetEmail === 'student@iftu.edu.et' || targetEmail === 'demostu' || targetEmail === 'barataa') && u.role === 'student')
-      ) || INITIAL_USERS.find(u => 
-        u.email.toLowerCase() === targetEmail || 
-        u.nid?.toLowerCase() === targetEmail ||
-        ((targetEmail === 'admin' || targetEmail === 'admin@iftu.edu.et') && u.role === 'admin') ||
-        ((targetEmail === 'teacher' || targetEmail === 'teacher@iftu.edu.et' || targetEmail === 'demoteach') && (u.role === 'teacher' || u.role === 'teaching_assistant')) ||
-        ((targetEmail === 'student' || targetEmail === 'student@iftu.edu.et' || targetEmail === 'demostu' || targetEmail === 'barataa') && u.role === 'student')
-      );
-
-      if (foundLocalUser && targetEmail !== "" && (isDemoPassword || isDemoEmail || targetPassword === foundLocalUser.nid || targetPassword === 'demo' || targetPassword.length < 15)) {
+      // STRICT CHECK: Only login if password is 'demo' OR user clicked a demo button (which sets targetEmail/targetPassword)
+      // If user manually clicks 'Access Registry' with empty password, don't let them in even if email matches an INITIAL_USER
+      if (foundLocalUser && targetEmail !== "" && (isDemoPassword || targetPassword === foundLocalUser.nid)) {
         setIsDemoSession(true);
         setIsLoggedIn(true);
         setCurrentUser(foundLocalUser);
         if (foundLocalUser.id === 'std-demo' || foundLocalUser.role === 'student') {
           setUserResults(MOCK_EXAM_RESULTS);
         }
-        handleNavClick(foundLocalUser.role === 'admin' ? 'admin' : (foundLocalUser.role === 'teacher' || foundLocalUser.role === 'teaching_assistant') ? 'teacher' : 'home');
+        handleNavClick(foundLocalUser.role === 'admin' ? 'admin' : (foundLocalUser.role === 'teacher' || foundLocalUser.role === 'teaching_assistant') ? 'teacher' : 'profile');
         setIsAuthenticating(false);
         return;
       }
@@ -880,7 +872,7 @@ const App: React.FC = () => {
         if (profile) {
           setIsLoggedIn(true);
           setCurrentUser(profile as User);
-          handleNavClick(profile.role === 'admin' ? 'admin' : profile.role === 'teacher' ? 'teacher' : 'home');
+          handleNavClick(profile.role === 'admin' ? 'admin' : profile.role === 'teacher' ? 'teacher' : 'profile');
           
           const results = await dbService.fetchResults(profile.id);
           if (results) setUserResults(results as any);
@@ -894,7 +886,7 @@ const App: React.FC = () => {
         setIsDemoSession(true);
         setIsLoggedIn(true);
         setCurrentUser(foundLocalUser);
-        handleNavClick(foundLocalUser.role === 'admin' ? 'admin' : (foundLocalUser.role === 'teacher' || foundLocalUser.role === 'teaching_assistant') ? 'teacher' : 'home');
+        handleNavClick(foundLocalUser.role === 'admin' ? 'admin' : (foundLocalUser.role === 'teacher' || foundLocalUser.role === 'teaching_assistant') ? 'teacher' : 'profile');
         setIsAuthenticating(false);
         return;
       }
@@ -906,7 +898,7 @@ const App: React.FC = () => {
         setIsDemoSession(true);
         setIsLoggedIn(true);
         setCurrentUser(defaultUser);
-        handleNavClick(defaultUser.role === 'admin' ? 'admin' : (defaultUser.role === 'teacher' || defaultUser.role === 'teaching_assistant') ? 'teacher' : 'home');
+        handleNavClick(defaultUser.role === 'admin' ? 'admin' : (defaultUser.role === 'teacher' || defaultUser.role === 'teaching_assistant') ? 'teacher' : 'profile');
         setIsAuthenticating(false);
         return;
       }
@@ -920,7 +912,7 @@ const App: React.FC = () => {
       if (fallbackUser) {
         setIsLoggedIn(true);
         setCurrentUser(fallbackUser);
-        handleNavClick('home');
+        handleNavClick('profile');
       }
     } finally {
       setIsAuthenticating(false);
@@ -1091,12 +1083,23 @@ const App: React.FC = () => {
     }, ...prev]);
   };
 
-  const handleLogout = () => {
+  const [showIframeNotice, setShowIframeNotice] = useState(true);
+
+  const handleLogout = async () => {
+    try {
+      if (auth.currentUser) {
+        await auth.signOut();
+      }
+    } catch (error) {
+      console.error("Auth signOut failed:", error);
+    }
     setIsLoggedIn(false);
     setCurrentUser(null);
     setActiveView('home');
     setIsDemoSession(false);
     localStorage.removeItem('user_session');
+    setLoginEmail('');
+    setLoginPassword('');
   };
 
   const handleExamComplete = async (result: any) => {
@@ -1200,14 +1203,14 @@ const App: React.FC = () => {
                 <input 
                   type="text" 
                   placeholder="Citizen Full Name" 
-                  className="w-full p-8 bg-white border-8 border-black rounded-[2.5rem] font-black text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
+                  className="w-full p-6 md:p-8 bg-white border-8 border-black rounded-[2rem] md:rounded-[2.5rem] font-black text-lg md:text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
                   value={registrationForm.name}
                   onChange={(e) => setRegistrationForm({...registrationForm, name: e.target.value})}
                 />
                 <input 
                   type="email" 
                   placeholder="Official Email Address" 
-                  className="w-full p-8 bg-white border-8 border-black rounded-[2.5rem] font-black text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
+                  className="w-full p-6 md:p-8 bg-white border-8 border-black rounded-[2rem] md:rounded-[2.5rem] font-black text-lg md:text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
                   value={registrationForm.email}
                   onChange={(e) => setRegistrationForm({...registrationForm, email: e.target.value})}
                 />
@@ -1230,21 +1233,21 @@ const App: React.FC = () => {
                 <input 
                   type="password" 
                   placeholder="Security Password" 
-                  className="w-full p-8 bg-white border-8 border-black rounded-[2.5rem] font-black text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
+                  className="w-full p-6 md:p-8 bg-white border-8 border-black rounded-[2rem] md:rounded-[2.5rem] font-black text-lg md:text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
                   value={registrationForm.password}
                   onChange={(e) => setRegistrationForm({...registrationForm, password: e.target.value})}
                 />
                 <input 
                   type="password" 
                   placeholder="Confirm Password" 
-                  className="w-full p-8 bg-white border-8 border-black rounded-[2.5rem] font-black text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
+                  className="w-full p-6 md:p-8 bg-white border-8 border-black rounded-[2rem] md:rounded-[2.5rem] font-black text-lg md:text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] transition-all"
                   value={registrationForm.confirmPassword}
                   onChange={(e) => setRegistrationForm({...registrationForm, confirmPassword: e.target.value})}
                 />
                 <button 
                   onClick={handleSignUp}
                   disabled={isAuthenticating}
-                  className="w-full py-8 bg-green-600 text-white rounded-[2.5rem] border-8 border-black font-black uppercase text-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 active:shadow-none disabled:opacity-50 transition-all"
+                  className="w-full py-6 md:py-8 bg-green-600 text-white rounded-[2rem] md:rounded-[2.5rem] border-8 border-black font-black uppercase text-xl md:text-2xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 active:shadow-none disabled:opacity-50 transition-all"
                 >
                   {isAuthenticating ? 'COMMITTING...' : 'REGISTER CITIZEN →'}
                 </button>
@@ -1274,19 +1277,31 @@ const App: React.FC = () => {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button 
-                    onClick={() => handleLogin(undefined, 'admin@iftu.edu.et', 'demo')}
+                    onClick={() => {
+                      setLoginEmail('admin@iftu.edu.et');
+                      setLoginPassword('demo');
+                      setAuthError("Sovereign Registry: Credentials populated. Click 'ACCESS REGISTRY' to proceed.");
+                    }}
                     className="flex-1 p-4 bg-purple-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-purple-200 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   >
                     <span>🛡️</span> Admin Demo
                   </button>
                   <button 
-                    onClick={() => handleLogin(undefined, 'teacher@iftu.edu.et', 'demo')}
+                    onClick={() => {
+                      setLoginEmail('teacher@iftu.edu.et');
+                      setLoginPassword('demo');
+                      setAuthError("Sovereign Registry: Credentials populated. Click 'ACCESS REGISTRY' to proceed.");
+                    }}
                     className="flex-1 p-4 bg-orange-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-orange-200 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   >
                     <span>👨‍🏫</span> Barsiisaa Demo
                   </button>
                   <button 
-                    onClick={() => handleLogin(undefined, 'student@iftu.edu.et', 'demo')}
+                    onClick={() => {
+                      setLoginEmail('student@iftu.edu.et');
+                      setLoginPassword('demo');
+                      setAuthError("Sovereign Registry: Credentials populated. Click 'ACCESS REGISTRY' to proceed.");
+                    }}
                     className="flex-1 p-4 bg-green-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-green-200 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   >
                     <span>🎓</span> Barataa Demo
@@ -1297,7 +1312,7 @@ const App: React.FC = () => {
                   <input 
                     type="email" 
                     placeholder="Identity Email" 
-                    className="w-full p-8 bg-white border-8 border-black rounded-[2.5rem] font-black text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] transition-all"
+                    className="w-full p-6 md:p-8 bg-white border-8 border-black rounded-[2rem] md:rounded-[2.5rem] font-black text-lg md:text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] transition-all"
                     value={loginEmail}
                     onChange={(e) => {
                       setLoginEmail(e.target.value);
@@ -1309,7 +1324,7 @@ const App: React.FC = () => {
                   <input 
                     type="password" 
                     placeholder="Registry Password" 
-                    className="w-full p-8 bg-white border-8 border-black rounded-[2.5rem] font-black text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] transition-all"
+                    className="w-full p-6 md:p-8 bg-white border-8 border-black rounded-[2rem] md:rounded-[2.5rem] font-black text-lg md:text-xl outline-none focus:shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] transition-all"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                   />
@@ -1318,7 +1333,7 @@ const App: React.FC = () => {
                 <button 
                   onClick={() => handleLogin()}
                   disabled={isAuthenticating}
-                  className="w-full py-8 bg-black text-white rounded-[2.5rem] border-8 border-black font-black uppercase text-2xl shadow-[12px_12px_0px_0px_rgba(59,130,246,1)] hover:translate-y-1 active:shadow-none disabled:opacity-50 transition-all flex items-center justify-center gap-4"
+                  className="w-full py-6 md:py-8 bg-black text-white rounded-[2rem] md:rounded-[2.5rem] border-8 border-black font-black uppercase text-xl md:text-2xl shadow-[12px_12px_0px_0px_rgba(59,130,246,1)] hover:translate-y-1 active:shadow-none disabled:opacity-50 transition-all flex items-center justify-center gap-4"
                 >
                   {isAuthenticating ? 'SYNCHRONIZING...' : 'ACCESS REGISTRY →'}
                 </button>
@@ -2278,16 +2293,25 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen ${currentLang === 'am' ? 'font-noto-amharic' : 'font-plus-jakarta'} ${isDarkMode ? 'bg-[#0a0a0a] text-white' : 'bg-[#fafafa] text-black'} selection:bg-yellow-400 selection:text-black overflow-x-hidden transition-colors duration-500`}>
-      {isInIframe && (
-        <div className="bg-black text-white py-2 px-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-4 border-b-4 border-yellow-400">
+      {isInIframe && showIframeNotice && (
+        <div className="bg-black text-white py-2 px-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-4 border-b-4 border-yellow-400 relative">
            <span className="animate-pulse text-yellow-400">●</span>
            <span>Sovereign Iframe Active: Biometric sync may be limited in preview.</span>
-           <button 
-             onClick={() => window.open(window.location.href, '_blank')}
-             className="ml-4 border-b-2 border-yellow-400 hover:text-yellow-400 transition-colors"
-           >
-             Go Standalone
-           </button>
+           <div className="flex items-center gap-2">
+             <button 
+               onClick={() => window.open(window.location.href, '_blank')}
+               className="border-b-2 border-yellow-400 hover:text-yellow-400 transition-colors"
+             >
+               Go Standalone
+             </button>
+             <button 
+               onClick={() => setShowIframeNotice(false)}
+               className="ml-2 w-6 h-6 bg-yellow-400 text-black rounded-full flex items-center justify-center hover:bg-white transition-colors"
+               title="Dismiss"
+             >
+               ✕
+             </button>
+           </div>
         </div>
       )}
 

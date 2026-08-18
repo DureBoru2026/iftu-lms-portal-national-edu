@@ -1000,6 +1000,43 @@ export const dbService = {
     }, (error) => handleFirestoreError(error, OperationType.LIST, path, true));
   },
 
+  // FLASHCARDS
+  subscribeToFlashcards(hallId: string, callback: (decks: any[]) => void): Unsubscribe {
+    const path = `study_halls/${hallId}/flashcards`;
+    const q = collection(db, path);
+    return onSnapshot(q, (snapshot) => {
+      const decks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(decks);
+    }, (error) => handleFirestoreError(error, OperationType.LIST, path, true));
+  },
+
+  async createFlashcardDeck(hallId: string, deck: any) {
+    const path = `study_halls/${hallId}/flashcards`;
+    try {
+      await addDoc(collection(db, path), deck);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  },
+
+  async updateFlashcardDeck(hallId: string, deckId: string, updates: any) {
+    const path = `study_halls/${hallId}/flashcards`;
+    try {
+      await updateDoc(doc(db, path, deckId), updates);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
+  async deleteFlashcardDeck(hallId: string, deckId: string) {
+    const path = `study_halls/${hallId}/flashcards`;
+    try {
+      await deleteDoc(doc(db, path, deckId));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  },
+
   async createDiscussion(discussion: any) {
     const path = 'discussions';
     try {
@@ -1157,6 +1194,27 @@ export const dbService = {
     const q = collection(db, path);
     return onSnapshot(q, (snapshot) => {
       callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Enrollment)));
+    }, (error) => handleFirestoreError(error, OperationType.LIST, path, true));
+  },
+
+  // AUDIT LOGS
+  async logSystemActivity(activity: { action: string; details: string; userRole: string; userName: string; userId: string; category: string }) {
+    const path = 'audit_logs';
+    try {
+      await addDoc(collection(db, path), {
+        ...activity,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Audit log failed:", error);
+    }
+  },
+
+  subscribeToAuditLogs(callback: (logs: any[]) => void): Unsubscribe {
+    const path = 'audit_logs';
+    const q = query(collection(db, path), orderBy('timestamp', 'desc'), limit(50));
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (error) => handleFirestoreError(error, OperationType.LIST, path, true));
   },
 

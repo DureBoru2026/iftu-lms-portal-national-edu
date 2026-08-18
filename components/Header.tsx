@@ -99,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({
                 <button 
                   key={item.id} 
                   onClick={() => handleNav(item.id)} 
-                  className={`text-[10px] xl:text-[11px] font-black uppercase tracking-widest px-3 xl:px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
+                  className={`text-[10px] xl:text-[11px] font-black uppercase tracking-[0.1em] px-3 xl:px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-900 hover:text-blue-700 hover:bg-blue-100'}`}
                 >
                   <span className="relative z-10">{t(item.id)}</span>
                   <div className={`absolute bottom-0 left-0 h-1 bg-black transition-all duration-300 ${activeView === item.id ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
@@ -116,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({
                   >
                     <button 
                       onClick={() => handleNav(item.id)} 
-                      className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
+                      className={`text-[11px] font-black uppercase tracking-[0.1em] px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-900 hover:text-blue-700 hover:bg-blue-100'}`}
                     >
                       <span className="relative z-10">{t(item.id)}</span>
                       {activeView === item.id && (
@@ -209,16 +209,17 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                   Portal
                 </button>
-                <button onClick={onLogout} className="hidden sm:block h-12 md:h-14 px-4 md:px-6 bg-rose-50 text-rose-600 rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-100 transition-all">
+                <button onClick={onLogout} className="h-12 md:h-14 px-4 md:px-6 bg-rose-50 text-rose-600 rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-100 transition-all">
                   Logout
                 </button>
               </div>
             ) : (
               <button 
                 onClick={onLoginClick} 
-                className="h-12 md:h-14 px-4 md:px-6 bg-black text-white rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,208,90,1)] hover:-translate-y-0.5 transition-all"
+                className="h-12 md:h-14 px-4 md:px-8 bg-blue-600 text-white rounded-xl border-4 border-black font-black uppercase text-xs tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-700 hover:-translate-y-1 transition-all flex items-center gap-2"
               >
-                Login
+                <span className="text-lg">🔐</span>
+                Access Portal
               </button>
             )}
 

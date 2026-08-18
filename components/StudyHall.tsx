@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Language } from '../types';
 import { dbService } from '../services/dbService';
-import { Users, MessageSquare, FileText, Send, Plus, Trash2, Timer, Play, Pause, RotateCcw } from 'lucide-react';
+import { Users, MessageSquare, FileText, Send, Plus, Trash2, Timer, Play, Pause, RotateCcw, Zap } from 'lucide-react';
 
 const PomodoroTimer = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
@@ -94,11 +94,18 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [notes, setNotes] = useState<SharedNote[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'flashcards'>('chat');
   const [inputText, setInputText] = useState('');
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [editingNote, setEditingNote] = useState<SharedNote | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Flashcard State
+  const [flashcardDecks, setFlashcardDecks] = useState<any[]>([]);
+  const [activeDeck, setActiveDeck] = useState<any | null>(null);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [newDeckTitle, setNewDeckTitle] = useState('');
 
   useEffect(() => {
     const hallId = 'global-study-hall';
@@ -117,6 +124,10 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
       setNotes(sharedNotes);
     });
 
+    const unsubscribeFlashcards = dbService.subscribeToFlashcards(hallId, (decks) => {
+      setFlashcardDecks(decks);
+    });
+
     const unsubscribePresence = dbService.subscribeToPresence(hallId, (users) => {
       setOnlineUsers(users);
     });
@@ -125,6 +136,7 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
       clearInterval(presenceHeartbeat);
       unsubscribeChat();
       unsubscribeNotes();
+      unsubscribeFlashcards();
       unsubscribePresence();
     };
   }, [currentUser]);
@@ -199,6 +211,13 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
             <FileText className="inline-block mr-2" size={16} />
             Shared Notes
           </button>
+          <button 
+            onClick={() => setActiveTab('flashcards')}
+            className={`px-6 py-2 rounded-xl font-black uppercase text-xs transition-all ${activeTab === 'flashcards' ? 'bg-white text-green-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'text-white hover:bg-white/10'}`}
+          >
+            <Zap className="inline-block mr-2" size={16} />
+            Flashcards
+          </button>
         </div>
       </div>
 
@@ -263,7 +282,7 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
               </button>
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'notes' ? (
           <div className="flex-1 flex bg-gray-50">
             {/* Notes List */}
             <div className="w-80 border-r-8 border-black bg-white p-6 flex flex-col gap-4 overflow-y-auto">
@@ -326,6 +345,147 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
                 <div className="flex-1 flex flex-col items-center justify-center text-gray-300">
                   <FileText size={80} strokeWidth={1} />
                   <p className="font-black uppercase tracking-widest mt-4">Select or create a note to begin</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex bg-gray-50">
+            {/* Flashcard List */}
+            <div className="w-80 border-r-8 border-black bg-white p-6 flex flex-col gap-4 overflow-y-auto">
+              <div className="flex gap-2">
+                <input 
+                  value={newDeckTitle}
+                  onChange={(e) => setNewDeckTitle(e.target.value)}
+                  placeholder="New deck name..."
+                  className="flex-1 bg-gray-50 border-4 border-black rounded-xl px-4 py-2 text-xs font-black outline-none"
+                />
+                <button 
+                  onClick={async () => {
+                    if (!newDeckTitle.trim()) return;
+                    await dbService.createFlashcardDeck('global-study-hall', {
+                      title: newDeckTitle,
+                      cards: [],
+                      createdBy: currentUser.name,
+                      createdAt: Date.now()
+                    });
+                    setNewDeckTitle('');
+                  }}
+                  className="bg-green-600 text-white p-2 rounded-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none transition-all"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {flashcardDecks.map((deck) => (
+                  <div 
+                    key={deck.id}
+                    onClick={() => { setActiveDeck(deck); setCurrentCardIndex(0); setIsFlipped(false); }}
+                    className={`p-4 rounded-xl border-4 border-black cursor-pointer transition-all flex justify-between items-center ${activeDeck?.id === deck.id ? 'bg-yellow-50 border-yellow-600' : 'bg-white hover:bg-gray-50'}`}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="font-black text-sm truncate">{deck.title}</p>
+                      <p className="text-[8px] font-black uppercase text-gray-400">{deck.cards.length} Cards • {deck.createdBy}</p>
+                    </div>
+                    <button 
+                      onClick={async (e) => { 
+                        e.stopPropagation(); 
+                        if (window.confirm('Delete deck?')) await dbService.deleteFlashcardDeck('global-study-hall', deck.id); 
+                      }}
+                      className="text-rose-500 hover:scale-110 transition-transform"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Flashcard Player */}
+            <div className="flex-1 p-8 bg-white flex flex-col items-center justify-center">
+              {activeDeck ? (
+                activeDeck.cards.length > 0 ? (
+                  <div className="w-full max-w-lg space-y-12">
+                    <div className="flex justify-between items-center border-b-4 border-black pb-4">
+                       <h4 className="text-2xl font-black uppercase italic">{activeDeck.title}</h4>
+                       <span className="text-[10px] font-black uppercase text-gray-400">Card {currentCardIndex + 1} of {activeDeck.cards.length}</span>
+                    </div>
+
+                    <div 
+                      onClick={() => setIsFlipped(!isFlipped)}
+                      className="group perspective-1000 h-80 w-full cursor-pointer"
+                    >
+                      <div className={`relative w-full h-full text-center transition-all duration-500 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+                        {/* Front */}
+                        <div className="absolute inset-0 backface-hidden flex items-center justify-center p-12 bg-white border-8 border-black rounded-[3rem] shadow-[20px_20px_0px_0px_rgba(0,0,0,1)]">
+                           <p className="text-3xl font-black italic">{activeDeck.cards[currentCardIndex].front}</p>
+                           <div className="absolute bottom-6 text-[10px] font-black uppercase text-gray-300">Click to reveal answer</div>
+                        </div>
+                        {/* Back */}
+                        <div className="absolute inset-0 backface-hidden flex items-center justify-center p-12 bg-black text-white border-8 border-black rounded-[3rem] shadow-[20px_20px_0px_0px_rgba(34,197,94,1)] rotate-y-180">
+                           <p className="text-3xl font-black italic">{activeDeck.cards[currentCardIndex].back}</p>
+                           <div className="absolute bottom-6 text-[10px] font-black uppercase text-green-400">Answer Revealed</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between gap-6">
+                      <button 
+                        onClick={() => {
+                          setCurrentCardIndex(prev => (prev - 1 + activeDeck.cards.length) % activeDeck.cards.length);
+                          setIsFlipped(false);
+                        }}
+                        className="flex-1 py-4 bg-gray-100 border-4 border-black rounded-2xl font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 transition-all"
+                      >
+                        Previous
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setCurrentCardIndex(prev => (prev + 1) % activeDeck.cards.length);
+                          setIsFlipped(false);
+                        }}
+                        className="flex-1 py-4 bg-black text-white border-4 border-black rounded-2xl font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] hover:translate-y-1 transition-all"
+                      >
+                        Next
+                      </button>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        const front = window.prompt('Front text:');
+                        const back = window.prompt('Back text:');
+                        if (front && back) {
+                          const updatedCards = [...activeDeck.cards, { front, back }];
+                          dbService.updateFlashcardDeck('global-study-hall', activeDeck.id, { cards: updatedCards });
+                        }
+                      }}
+                      className="w-full py-4 border-4 border-dashed border-gray-300 rounded-2xl font-black uppercase text-[10px] text-gray-400 hover:border-black hover:text-black transition-all"
+                    >
+                      + Add New Card to this Deck
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-6">
+                    <Zap size={64} className="mx-auto text-gray-200" />
+                    <p className="font-black uppercase tracking-widest text-gray-400">This deck is empty</p>
+                    <button 
+                      onClick={() => {
+                        const front = window.prompt('Front text:');
+                        const back = window.prompt('Back text:');
+                        if (front && back) {
+                          dbService.updateFlashcardDeck('global-study-hall', activeDeck.id, { cards: [{ front, back }] });
+                        }
+                      }}
+                      className="px-8 py-3 bg-green-600 text-white rounded-xl border-4 border-black font-black uppercase text-xs"
+                    >
+                      + Add First Card
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="text-center space-y-6">
+                  <RotateCcw size={64} className="mx-auto text-gray-200" />
+                  <p className="font-black uppercase tracking-widest text-gray-400">Select a deck to start studying</p>
                 </div>
               )}
             </div>

@@ -83,16 +83,16 @@ const PublicNewsFeed: React.FC<PublicNewsFeedProps> = ({ onLogin }) => {
     <div className="w-full space-y-12 py-12 px-6 bg-white/50 backdrop-blur-sm rounded-[4rem] border-8 border-black/5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
-          <h2 className="text-5xl md:text-6xl font-black uppercase italic tracking-tighter text-blue-900 leading-none">
+          <h2 className="text-3xl md:text-6xl font-black uppercase italic tracking-tighter text-blue-900 leading-none">
             Beeksisa & <br/><span className="text-black">Qajeelfama.</span>
           </h2>
-          <p className="text-xl font-bold text-gray-500 italic">Official Announcements & Video Guides.</p>
+          <p className="text-sm md:text-xl font-bold text-gray-500 italic">Official Announcements & Video Guides.</p>
         </div>
         <div className="flex gap-4">
-          <div className="w-16 h-16 bg-yellow-400 border-8 border-black rounded-2xl flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-400 border-4 md:border-8 border-black rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             📢
           </div>
-          <div className="w-16 h-16 bg-blue-600 border-8 border-black rounded-2xl flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600 border-4 md:border-8 border-black rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             🎬
           </div>
         </div>

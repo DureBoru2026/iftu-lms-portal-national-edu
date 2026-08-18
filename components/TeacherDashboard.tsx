@@ -1554,12 +1554,22 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <div className="flex items-center gap-4">
             <I2LMSLogo size="sm" />
           </div>
-          <button 
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 bg-orange-600 rounded-xl border-2 border-white"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onNavClick('home')}
+              className="p-3 bg-red-600 rounded-xl border-2 border-white text-white font-black uppercase text-[10px] flex items-center gap-2"
+              title="Logout"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 bg-orange-600 rounded-xl border-2 border-white"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="space-y-12 animate-fadeIn pb-32 relative">
