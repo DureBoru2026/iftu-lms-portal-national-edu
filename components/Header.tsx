@@ -204,22 +204,23 @@ const Header: React.FC<HeaderProps> = ({
                     else if (teacherRoles.includes(userRole || '')) handleNav('teacher');
                     else handleNav('performance');
                   }}
-                  className="hidden sm:flex h-12 md:h-14 px-4 md:px-6 bg-blue-50 text-blue-700 rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-100 transition-all items-center gap-2"
+                  className="flex h-11 md:h-14 px-3 md:px-6 bg-blue-50 text-blue-700 rounded-xl border-4 border-black font-black uppercase text-[9px] md:text-[10px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-100 transition-all items-center gap-1 md:gap-2"
                 >
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full animate-pulse"></span>
                   Portal
                 </button>
-                <button onClick={onLogout} className="h-12 md:h-14 px-4 md:px-6 bg-rose-50 text-rose-600 rounded-xl border-4 border-black font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-100 transition-all">
+                <button onClick={onLogout} className="h-11 md:h-14 px-3 md:px-6 bg-rose-50 text-rose-600 rounded-xl border-4 border-black font-black uppercase text-[9px] md:text-[10px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-100 transition-all">
                   Logout
                 </button>
               </div>
             ) : (
               <button 
                 onClick={onLoginClick} 
-                className="h-12 md:h-14 px-4 md:px-8 bg-blue-600 text-white rounded-xl border-4 border-black font-black uppercase text-xs tracking-widest shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-700 hover:-translate-y-1 transition-all flex items-center gap-2"
+                className="h-11 md:h-14 px-3 md:px-8 bg-blue-600 text-white rounded-xl border-4 border-black font-black uppercase text-[9px] md:text-xs tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-700 hover:-translate-y-1 transition-all flex items-center gap-1 md:gap-2"
               >
-                <span className="text-lg">🔐</span>
-                Access Portal
+                <span className="text-base md:text-lg">🔐</span>
+                <span className="hidden xs:inline">Access Portal</span>
+                <span className="xs:hidden">Login</span>
               </button>
             )}
 
@@ -241,39 +242,21 @@ const Header: React.FC<HeaderProps> = ({
                     <span className="text-xl">🎓</span>
                   </div>
                   <div className="flex flex-col p-4 gap-2">
-                    {/* Mobile Settings Section */}
-                    <div className="md:hidden flex flex-col gap-4 mb-4 pb-4 border-b-4 border-black">
-                      <div className="flex items-center justify-between">
-                        <button 
-                          onClick={onToggleDarkMode}
-                          className={`flex items-center gap-2 px-4 py-2 border-4 border-black rounded-xl font-black uppercase text-[10px] ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
-                        >
-                          {isDarkMode ? <Sun size={14} className="text-yellow-400" /> : <Moon size={14} className="text-blue-600" />}
-                          {isDarkMode ? 'Light' : 'Dark'}
-                        </button>
-                        <div className="flex items-center gap-2">
-                           <div className={`w-3 h-3 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
-                           <span className="text-[10px] font-black uppercase">{isOnline ? 'Online' : 'Offline'}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        {[
-                          { code: 'en' as Language, name: 'English' },
-                          { code: 'am' as Language, name: 'አማርኛ' },
-                          { code: 'om' as Language, name: 'Afaan Oromoo' }
-                        ].map(({ code, name }) => (
+                    {isLoggedIn ? (
+                      <div className="flex flex-col gap-2 md:hidden mb-4 pb-4 border-b-4 border-black">
+                        <div className="flex items-center justify-between">
                           <button 
-                            key={code} 
-                            onClick={() => onLangChange(code)} 
-                            className={`flex-1 py-2 rounded-xl border-4 border-black text-[10px] font-black uppercase transition-colors ${currentLang === code ? 'bg-[#FFD700] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white'}`}
+                            onClick={onToggleDarkMode}
+                            className={`flex items-center gap-2 px-4 py-2 border-4 border-black rounded-xl font-black uppercase text-[10px] ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
                           >
-                            {name}
+                            {isDarkMode ? <Sun size={14} className="text-yellow-400" /> : <Moon size={14} className="text-blue-600" />}
+                            {isDarkMode ? 'Light' : 'Dark'}
                           </button>
-                        ))}
-                      </div>
-
-                      {isLoggedIn && (
+                          <div className="flex items-center gap-2">
+                             <div className={`w-3 h-3 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
+                             <span className="text-[10px] font-black uppercase">{isOnline ? 'Online' : 'Offline'}</span>
+                          </div>
+                        </div>
                         <div className="flex gap-2 mt-2">
                           <button 
                             onClick={() => {
@@ -291,8 +274,17 @@ const Header: React.FC<HeaderProps> = ({
                             Logout
                           </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="md:hidden flex flex-col gap-2 mb-4 pb-4 border-b-4 border-black">
+                        <button 
+                          onClick={onLoginClick}
+                          className="w-full py-4 bg-blue-600 text-white rounded-xl border-4 border-black font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
+                        >
+                          🔐 Access Sovereign Portal
+                        </button>
+                      </div>
+                    )}
 
                     {/* Mobile Search */}
                     <form onSubmit={handleSearchSubmit} className="lg:hidden relative mb-4">
