@@ -1326,36 +1326,47 @@ const StudentProfile: React.FC<StudentProfileProps> = ({
           {activeTab === 'overview' && (
             <div className="space-y-12">
               {/* Sovereign Progress Path Banner */}
-              <div 
-                onClick={() => setActiveTab('progress_path')}
-                className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 border-8 border-black rounded-[3rem] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden group"
-              >
-                <div className="flex items-center gap-6 z-10">
-                  <div className="w-16 h-16 bg-black text-amber-300 border-4 border-black rounded-3xl flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] group-hover:scale-110 transition-transform">
-                    <Compass size={36} className="animate-spin-slow text-amber-400" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-0.5 bg-black text-amber-300 border border-black rounded-md text-[9px] font-black uppercase tracking-wider">
-                        ADUU GANAMA ROADMAP
-                      </span>
-                      <span className="px-3 py-0.5 bg-white text-black border border-black rounded-md text-[9px] font-black uppercase tracking-wider">
-                        REGISTRY INDEX
-                      </span>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div 
+                  onClick={() => setActiveTab('progress_path')}
+                  className="md:col-span-8 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 border-8 border-black rounded-[3rem] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden group"
+                >
+                  <div className="flex items-center gap-6 z-10">
+                    <div className="w-16 h-16 bg-black text-amber-300 border-4 border-black rounded-3xl flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] group-hover:scale-110 transition-transform">
+                      <Compass size={36} className="animate-spin-slow text-amber-400" />
                     </div>
-                    <h4 className="text-2xl md:text-3xl font-black uppercase italic text-black mt-1">
-                      View Academic Roadmap
-                    </h4>
-                    <p className="text-xs font-bold text-black/80 uppercase">
-                      Track your level milestones, knowledge points, and regional academic roadmap
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-0.5 bg-black text-amber-300 border border-black rounded-md text-[9px] font-black uppercase tracking-wider">
+                          ADUU GANAMA ROADMAP
+                        </span>
+                      </div>
+                      <h4 className="text-2xl md:text-3xl font-black uppercase italic text-black mt-1">
+                        View Academic Roadmap
+                      </h4>
+                      <p className="text-xs font-bold text-black/80 uppercase">
+                        Track level milestones & registry index
+                      </p>
+                    </div>
                   </div>
+                  <ChevronRight size={32} className="text-black hidden sm:block group-hover:translate-x-2 transition-transform" />
                 </div>
 
-                <div className="flex items-center gap-3 z-10">
-                  <button className="px-6 py-3 bg-black text-white border-4 border-black rounded-2xl font-black uppercase italic text-xs shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] group-hover:bg-amber-950 flex items-center gap-2">
-                    Open Roadmap <ChevronRight size={16} />
-                  </button>
+                <div 
+                  onClick={() => setActiveTab('identity')}
+                  className="md:col-span-4 bg-white border-8 border-black rounded-[3rem] p-6 shadow-[12px_12px_0px_0px_rgba(34,197,94,1)] hover:-translate-y-1 transition-all cursor-pointer flex items-center gap-6 group"
+                >
+                  <div className="w-20 h-20 shrink-0 bg-gray-100 border-4 border-black rounded-2xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform">
+                    {qrCodeDataUrl ? (
+                      <img src={qrCodeDataUrl} className="w-full h-full object-contain" alt="Identity QR" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><QrCode size={32} /></div>
+                    )}
+                  </div>
+                  <div className="overflow-hidden">
+                    <h4 className="text-xl font-black uppercase italic leading-tight">Quick Check-in</h4>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Scan for Attendance</p>
+                  </div>
                 </div>
               </div>
 

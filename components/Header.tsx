@@ -19,15 +19,17 @@ interface HeaderProps {
   t: (key: string) => string;
   accessibilitySettings: any;
   onAccessibilityChange: (settings: any) => void;
+  isDarkMode: boolean;
+  onToggleDarkMode: () => void;
   isOnline: boolean;
   onSearch: (query: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-  onNavClick, activeView, isLoggedIn, userRole, onLogout, onLoginClick, currentLang, onLangChange, t, isOnline, onSearch
+  onNavClick, activeView, isLoggedIn, userRole, onLogout, onLoginClick, currentLang, onLangChange, t, isOnline, onSearch,
+  isDarkMode, onToggleDarkMode
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,29 +41,7 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // Initialize dark mode from localStorage or system preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
+  // Dropdown navigation handler
   const handleNav = (view: string) => {
     onNavClick(view);
     setIsDropdownOpen(false);
@@ -109,28 +89,47 @@ const Header: React.FC<HeaderProps> = ({
             <I2LMSLogo onClick={() => handleNav('home')} size="md" />
 
             {/* Desktop Navigation (Moved to Left) */}
-            <nav className="hidden xl:flex items-center gap-2">
-              {navConfig.slice(0, 10).map((item) => (
-                <RoleGuard 
+            <nav className="hidden md:flex items-center gap-1 xl:gap-2">
+              {/* Force show Home, About, News for all desktop users */}
+              {[
+                { id: 'home', roles: ['guest_user', 'student', 'teacher', 'admin'] },
+                { id: 'about', roles: ['guest_user', 'student', 'teacher', 'admin'] },
+                { id: 'news', roles: ['guest_user', 'student', 'teacher', 'admin'] }
+              ].map((item) => (
+                <button 
                   key={item.id} 
-                  currentUser={currentUserMock} 
-                  allowedRoles={item.roles as any}
+                  onClick={() => handleNav(item.id)} 
+                  className={`text-[10px] xl:text-[11px] font-black uppercase tracking-widest px-3 xl:px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
                 >
-                  <button 
-                    onClick={() => handleNav(item.id)} 
-                    className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
-                  >
-                    <span className="relative z-10">{t(item.id)}</span>
-                    {activeView === item.id && (
-                      <motion.div 
-                        layoutId="nav-glow"
-                        className="absolute inset-0 bg-yellow-400/20 blur-md"
-                      />
-                    )}
-                    <div className={`absolute bottom-0 left-0 h-1 bg-black transition-all duration-300 ${activeView === item.id ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
-                  </button>
-                </RoleGuard>
+                  <span className="relative z-10">{t(item.id)}</span>
+                  <div className={`absolute bottom-0 left-0 h-1 bg-black transition-all duration-300 ${activeView === item.id ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
+                </button>
               ))}
+
+              {/* Rest of Nav for XL screens */}
+              <div className="hidden xl:flex items-center gap-2 border-l-4 border-black/5 ml-2 pl-2">
+                {navConfig.slice(3, 10).map((item) => (
+                  <RoleGuard 
+                    key={item.id} 
+                    currentUser={currentUserMock} 
+                    allowedRoles={item.roles as any}
+                  >
+                    <button 
+                      onClick={() => handleNav(item.id)} 
+                      className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all relative group overflow-hidden ${activeView === item.id ? 'text-black bg-yellow-400' : 'text-gray-500 hover:text-black hover:bg-gray-100'}`}
+                    >
+                      <span className="relative z-10">{t(item.id)}</span>
+                      {activeView === item.id && (
+                        <motion.div 
+                          layoutId="nav-glow"
+                          className="absolute inset-0 bg-yellow-400/20 blur-md"
+                        />
+                      )}
+                      <div className={`absolute bottom-0 left-0 h-1 bg-black transition-all duration-300 ${activeView === item.id ? 'w-full' : 'w-0 group-hover:w-full'}`}></div>
+                    </button>
+                  </RoleGuard>
+                ))}
+              </div>
             </nav>
 
             {/* Search Engine Integration */}
@@ -157,13 +156,25 @@ const Header: React.FC<HeaderProps> = ({
             {/* Language & Theme Selectors (Hidden on Mobile) */}
             <div className="hidden md:flex items-center gap-2">
               <button 
-                onClick={toggleDarkMode}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-xl border-4 border-black flex items-center justify-center bg-white hover:bg-gray-100 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none"
+                onClick={onToggleDarkMode}
+                className={`w-10 h-10 md:w-12 md:h-12 rounded-xl border-4 border-black flex items-center justify-center transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
                 title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
-                {isDarkMode ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-blue-600" />}
+                {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-blue-600" />}
               </button>
-              <div className={`w-3 h-3 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} title={isOnline ? 'Online' : 'Offline'}></div>
+              
+              <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-xl border-4 border-black h-10 md:h-12">
+                <div className={`w-3 h-3 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} title={isOnline ? 'Online' : 'Offline'}></div>
+                {!isOnline && (
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="text-[8px] font-black uppercase hover:underline"
+                  >
+                    Sync
+                  </button>
+                )}
+              </div>
+
               <div className="flex gap-1 bg-gray-100 p-1.5 rounded-xl border-4 border-black">
               {[
                 { code: 'en' as Language, label: 'EN', name: 'English' },
@@ -233,10 +244,10 @@ const Header: React.FC<HeaderProps> = ({
                     <div className="md:hidden flex flex-col gap-4 mb-4 pb-4 border-b-4 border-black">
                       <div className="flex items-center justify-between">
                         <button 
-                          onClick={toggleDarkMode}
-                          className="flex items-center gap-2 px-4 py-2 bg-white border-4 border-black rounded-xl font-black uppercase text-[10px]"
+                          onClick={onToggleDarkMode}
+                          className={`flex items-center gap-2 px-4 py-2 border-4 border-black rounded-xl font-black uppercase text-[10px] ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
                         >
-                          {isDarkMode ? <Sun size={14} className="text-yellow-500" /> : <Moon size={14} className="text-blue-600" />}
+                          {isDarkMode ? <Sun size={14} className="text-yellow-400" /> : <Moon size={14} className="text-blue-600" />}
                           {isDarkMode ? 'Light' : 'Dark'}
                         </button>
                         <div className="flex items-center gap-2">

@@ -306,6 +306,17 @@ const App: React.FC = () => {
     localStorage.setItem('iftu_sidebar_state', JSON.stringify(isStudentSidebarOpen));
   }, [isStudentSidebarOpen]);
 
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('iftu-dark-mode') === 'true');
+
+  useEffect(() => {
+    localStorage.setItem('iftu-dark-mode', String(isDarkMode));
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   const [isStudentMobileMenuOpen, setIsStudentMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -1261,18 +1272,24 @@ const App: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button 
+                    onClick={() => handleLogin(undefined, 'admin@iftu.edu.et', 'demo')}
+                    className="flex-1 p-4 bg-purple-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-purple-200 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    <span>🛡️</span> Admin Demo
+                  </button>
                   <button 
                     onClick={() => handleLogin(undefined, 'teacher@iftu.edu.et', 'demo')}
-                    className="flex-1 p-4 bg-orange-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-orange-200 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 p-4 bg-orange-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-orange-200 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   >
-                    <span>👨‍🏫</span> Barsiisaa (Teacher) Demo
+                    <span>👨‍🏫</span> Barsiisaa Demo
                   </button>
                   <button 
                     onClick={() => handleLogin(undefined, 'student@iftu.edu.et', 'demo')}
-                    className="flex-1 p-4 bg-green-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-green-200 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 p-4 bg-green-100 border-4 border-black rounded-2xl font-black uppercase text-[10px] hover:bg-green-200 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                   >
-                    <span>🎓</span> Barataa (Student) Demo
+                    <span>🎓</span> Barataa Demo
                   </button>
                 </div>
 
@@ -2260,7 +2277,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${currentLang === 'am' ? 'font-noto-amharic' : 'font-plus-jakarta'} bg-[#fafafa] text-black selection:bg-yellow-400 selection:text-black overflow-x-hidden`}>
+    <div className={`min-h-screen ${currentLang === 'am' ? 'font-noto-amharic' : 'font-plus-jakarta'} ${isDarkMode ? 'bg-[#0a0a0a] text-white' : 'bg-[#fafafa] text-black'} selection:bg-yellow-400 selection:text-black overflow-x-hidden transition-colors duration-500`}>
       {isInIframe && (
         <div className="bg-black text-white py-2 px-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-4 border-b-4 border-yellow-400">
            <span className="animate-pulse text-yellow-400">●</span>
@@ -2315,6 +2332,8 @@ const App: React.FC = () => {
                 onSearch={handleGlobalSearch}
                 accessibilitySettings={{}}
                 onAccessibilityChange={() => {}}
+                isDarkMode={isDarkMode}
+                onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
               />
 
               {/* Dynamic Content Layer */}

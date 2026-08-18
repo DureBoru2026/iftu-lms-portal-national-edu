@@ -1,7 +1,72 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Language } from '../types';
 import { dbService } from '../services/dbService';
-import { Users, MessageSquare, FileText, Send, Plus, Trash2 } from 'lucide-react';
+import { Users, MessageSquare, FileText, Send, Plus, Trash2, Timer, Play, Pause, RotateCcw } from 'lucide-react';
+
+const PomodoroTimer = () => {
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [isActive, setIsActive] = useState(false);
+  const [mode, setMode] = useState<'work' | 'break'>('work');
+
+  useEffect(() => {
+    let interval: any = null;
+    if (isActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((time) => time - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsActive(false);
+      // Optional: Add sound notification here
+      if (mode === 'work') {
+        setMode('break');
+        setTimeLeft(5 * 60);
+      } else {
+        setMode('work');
+        setTimeLeft(25 * 60);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [isActive, timeLeft, mode]);
+
+  const toggleTimer = () => setIsActive(!isActive);
+  const resetTimer = () => {
+    setIsActive(false);
+    setTimeLeft(mode === 'work' ? 25 * 60 : 5 * 60);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="p-6 bg-black text-white border-b-8 border-black space-y-4">
+      <div className="flex items-center gap-3">
+        <Timer className="text-yellow-400" size={20} />
+        <h4 className="font-black uppercase text-sm tracking-widest">Focus Session</h4>
+      </div>
+      <div className="bg-white/10 p-4 rounded-2xl border-4 border-white/20 text-center">
+        <div className="text-4xl font-black italic tracking-tighter mb-2">{formatTime(timeLeft)}</div>
+        <div className="text-[8px] font-black uppercase tracking-[0.2em] text-yellow-400 mb-4">{mode === 'work' ? 'Time to Focus' : 'Take a Break'}</div>
+        <div className="flex justify-center gap-3">
+          <button 
+            onClick={toggleTimer}
+            className={`w-10 h-10 rounded-xl border-2 border-white flex items-center justify-center transition-all ${isActive ? 'bg-yellow-400 text-black border-black' : 'bg-white/10 hover:bg-white/20'}`}
+          >
+            {isActive ? <Pause size={16} /> : <Play size={16} />}
+          </button>
+          <button 
+            onClick={resetTimer}
+            className="w-10 h-10 rounded-xl border-2 border-white bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"
+          >
+            <RotateCcw size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface ChatMessage {
   id: string;
@@ -139,8 +204,10 @@ export const StudyHall: React.FC<StudyHallProps> = ({ currentUser, lang }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar: Online Users */}
+        {/* Sidebar: Online Users & Timer */}
         <div className="hidden lg:flex w-64 bg-gray-50 border-r-8 border-black flex-col">
+          <PomodoroTimer />
+          
           <div className="p-6 border-b-4 border-black bg-white flex items-center gap-3">
              <Users className="text-green-600" size={20} />
              <h4 className="font-black uppercase text-sm">Active Peers ({onlineUsers.length})</h4>

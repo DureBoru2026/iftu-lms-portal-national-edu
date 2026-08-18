@@ -8,8 +8,10 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell
 } from 'recharts';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, TrendingUp, Award, Target, BookOpen, ChevronRight } from 'lucide-react';
+import { Sparkles, TrendingUp, Award, Target, BookOpen, ChevronRight, FileDown } from 'lucide-react';
 import * as geminiService from '../services/geminiService';
 
 interface PerformancePortalProps {
@@ -27,6 +29,69 @@ const PerformancePortal: React.FC<PerformancePortalProps> = ({ results, exams, c
   const [showExamCert, setShowExamCert] = useState<ExamResult | null>(null);
   const [learningPath, setLearningPath] = useState<{title: string, suggestion: string, priority: string}[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const generatePDFReport = () => {
+    if (!currentUser) return;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(0, 155, 68); // Ethiopian Green
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text('IFTU NATIONAL DIGITAL CENTER', 14, 20);
+    doc.setFontSize(14);
+    doc.text('Official Academic Transcript Summary', 14, 30);
+
+    // Student Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.text(`Student Name: ${currentUser.name}`, 14, 50);
+    doc.text(`Identity ID: ${currentUser.nid || 'N/A'}`, 14, 57);
+    doc.text(`Grade: ${currentUser.grade} | Stream: ${currentUser.stream}`, 14, 64);
+    doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 71);
+
+    // Summary Stats
+    const totalScore = results.reduce((sum, r) => sum + r.score, 0);
+    const totalPossible = results.reduce((sum, r) => sum + r.totalPoints, 0);
+    const avg = totalPossible > 0 ? Math.round((totalScore / totalPossible) * 100) : 0;
+
+    doc.setFontSize(14);
+    doc.text('Performance Summary', 14, 85);
+    doc.setFontSize(12);
+    doc.text(`Aggregate Mastery: ${avg}%`, 14, 92);
+    doc.text(`Completed Modules: ${currentUser.completedCourses?.length || 0}`, 14, 99);
+    doc.text(`Sovereign Points (XP): ${currentUser.points}`, 14, 106);
+
+    // Exam Table
+    const tableData = results.map(r => {
+      const exam = exams.find(e => e.id === r.examId);
+      return [
+        exam?.title || 'Unknown Exam',
+        exam?.subject || 'N/A',
+        `${r.score}/${r.totalPoints}`,
+        `${Math.round((r.score / r.totalPoints) * 100)}%`,
+        new Date(r.completedAt).toLocaleDateString()
+      ];
+    });
+
+    (doc as any).autoTable({
+      startY: 115,
+      head: [['Exam Title', 'Subject', 'Score', '%', 'Date']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [0, 0, 0] },
+    });
+
+    // Footer
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Verified through IFTU Sovereign Identity Protocol. National Education Registry.', 14, finalY);
+
+    doc.save(`${currentUser.name}_Academic_Report.pdf`);
+  };
 
   const performanceData = useMemo(() => {
     if (results.length === 0) return [];
@@ -106,7 +171,16 @@ const PerformancePortal: React.FC<PerformancePortalProps> = ({ results, exams, c
         <div className="flex flex-col lg:flex-row justify-between items-start gap-16 relative z-10">
           <div className="space-y-10 max-w-2xl">
             <span className="inline-block bg-blue-700 text-white px-10 py-4 rounded-3xl border-4 border-black font-black uppercase text-sm tracking-[0.5em] shadow-xl">National Academic Registry</span>
-            <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-[0.75] text-blue-900">Transcript <br/>Summary.</h2>
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-[0.75] text-blue-900">Transcript <br/>Summary.</h2>
+              <button 
+                onClick={generatePDFReport}
+                className="flex items-center gap-3 bg-black text-white px-8 py-4 rounded-2xl border-4 border-black font-black uppercase text-xs shadow-[6px_6px_0px_0px_rgba(59,130,246,1)] hover:translate-y-1 active:shadow-none transition-all"
+              >
+                <FileDown size={18} />
+                Download PDF
+              </button>
+            </div>
           </div>
           <div className="flex flex-col items-center bg-gray-50 border-8 border-black p-12 rounded-[4rem] shadow-inner w-full lg:w-auto">
              <div className="text-center">
